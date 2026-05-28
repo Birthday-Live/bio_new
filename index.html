@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About WaterChisato</title>
+    
+    
+ <meta property="og:title" content="About WaterChisato">
+<meta property="og:description" content="一个简简单单的介绍页，没必要有多余的内容~">
+<meta property="og:image" content="http://www.chisato.org.cn/assets/avatar.png">
+<meta property="og:url" content="http://www.chisato.org.cn/">
+<meta property="og:type" content="website">
+ <meta itemprop="name" content="About WaterChisato">
+<meta itemprop="description" content="一个简简单单的介绍页，没必要有多余的内容~">
+<meta itemprop="image" content="http://www.chisato.org.cn/assets/avatar.png">
+
+    <!-- 优先预加载首张背景图 -->
+    <link rel="preload" as="image" href="./assets/background.jpg" crossorigin="anonymous">
+
+    <!-- 字体通过 jsDelivr CDN 加载（国内可访问） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/harmonyos-sans@5/index.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/material-symbols@latest/outlined.css">
+
+    <!-- 本地样式优先加载 -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <div class="fallback-bg"></div>
+    <img id="bg-canvas-back" src="./assets/background.jpg" alt="" crossorigin="anonymous">
+    <img id="bg-canvas" src="./assets/background.jpg" alt="Background" crossorigin="anonymous">
+
+    <!-- 背景轮换控制 -->
+    <div class="bg-controls" id="bg-controls">
+        <button class="bg-arrow bg-prev" id="bg-prev" title="上一张">
+            <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <div class="bg-dots" id="bg-dots"></div>
+        <button class="bg-arrow bg-next" id="bg-next" title="下一张">
+            <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+    </div>
+
+    <main class="container">
+        <div class="profile-section">
+            <img src="./assets/avatar.png" class="avatar" alt="User">
+
+            <p class="centered">Hi, I am</p>
+            <h1>水喝千束</h1>
+            <p class="bio">
+                一个热爱生活、喜欢分享的小可爱～
+                <br>
+                对于时间流逝的残酷，今天的我仍没有察觉；对于将来某一天的我来说，我希望自己是值得骄傲的自己
+            </p>
+
+            <div class="tags">
+                <div class="tag">Java</div>
+                <div class="tag">Python</div>
+                <div class="tag">JavaScript</div>
+                <div class="tag">HTML/CSS</div>
+            </div>
+        </div>
+
+        <nav class="nav-section">
+            <!-- Telegram 风格链接预览卡片 - Github（内联元数据） -->
+            <a href="https://github.com/waterchisato" class="link-preview-card" target="_blank" rel="noopener"
+               data-preview-title="WaterChisato - Overview"
+               data-preview-desc="I only maintain my personal blog site. WaterChisato has 87 repositories available. Follow their code on GitHub."
+               data-preview-host="github.com"
+               data-preview-image="https://avatars.githubusercontent.com/u/213933094?v=4?s=400">
+                <div class="preview-url-top">github.com</div>
+                <div class="preview-body">
+                    <div class="preview-thumb">
+                        <img class="preview-favicon" src="" alt="">
+                        <span class="material-symbols-outlined preview-icon-fallback">code</span>
+                    </div>
+                    <div class="preview-info">
+                        <div class="preview-title">WaterChisato</div>
+                        <div class="preview-desc">代码仓库 &amp; 开源项目</div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Telegram 风格链接预览卡片 - Blog（内联元数据，无需 API 抓取） -->
+            <a href="http://blog.waterchisato.top" class="link-preview-card" target="_blank" rel="noopener"
+               data-preview-title="水喝千束のBlog"
+               data-preview-desc=""
+               data-preview-host="blog.waterchisato.top"
+               data-preview-image="https://blogger.googleusercontent.com/img/a/AVvXsEh0SCGY5WSgkcUNsP4ffwH8R4DkJuZHfm7XrMY9dUzbraBvzf_BZS43aWXk4gXrCm5Dqgt0gQG7cJKlIsws2Otgl1ghwDw9AKyVR69R3C3_nR3vnmPywR2SdsaECkCBHGzhYmiII3B0Q0m_jk_vhZMk1QtCc3sYRoAkxcEo9yjeJGk2x8AhVeXpjtaXzGI=w1200-h630-p-k-no-nu">
+                <div class="preview-url-top">blog.waterchisato.top</div>
+                <div class="preview-body">
+                    <div class="preview-thumb">
+                        <img class="preview-favicon" src="" alt="">
+                        <span class="material-symbols-outlined preview-icon-fallback">web</span>
+                    </div>
+                    <div class="preview-info">
+                        <div class="preview-title">Blog</div>
+                        <div class="preview-desc">个人博客 &amp; 技术分享</div>
+                    </div>
+                </div>
+            </a>
+            <a href="mailto:aaa@waterchisato.top" class="link-card">
+                <span class="material-symbols-outlined">mail</span>
+                <div class="link-text">邮箱</div>
+                <span class="material-symbols-outlined">chevron_right</span>
+            </a>
+            <div class="dropdown">
+                <div class="link-card dropdown-trigger">
+                    <span class="material-symbols-outlined">scatter_plot</span>
+                    <div class="link-text">更多</div>
+                    <span class="material-symbols-outlined arrow">expand_more</span>
+                </div>
+                <div class="dropdown-content">
+                    <!--
+                    <a href="#" class="dropdown-item">
+                        <span class="material-symbols-outlined">sports_esports</span>
+                        <span>Steam不确定有没有哦</span>
+                    </a>
+                    -->
+                    <a href="https://space.bilibili.com/1064027910" class="dropdown-item">
+                        <span class="material-symbols-outlined">videogame_asset</span>
+                        <span>B站(水喝千束)</span>
+                    </a>
+                    <a href="https://space.bilibili.com/3546718125689721" class="dropdown-item">
+                        <span class="material-symbols-outlined">brush</span>
+                        <span>B站(次放Studio)</span>
+                    </a>
+                    <a href="https://bio.20110202.top/" class="dropdown-item">
+                        <span class="material-symbols-outlined">open_in_new</span>
+                        <span>内容导航站</span>
+                    </a>
+                    <a href="https://welcome.chisato.org.cn/old_index.html" class="dropdown-item">
+                        <span class="material-symbols-outlined">contextual_token</span>
+                        <span>原欢迎页（备份）</span>
+                    </a>
+                </div>
+            </div>
+            <div class="dropdown music-dropdown">
+                <div class="link-card dropdown-trigger">
+                    <span class="material-symbols-outlined">music_note</span>
+                    <div class="link-text">音乐 (来源：网易云音乐)</div>
+                    <span class="material-symbols-outlined arrow">expand_more</span>
+                </div>
+                <div class="dropdown-content">
+                    <!-- require APlayer -->
+                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
+                    <script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script>
+                    <!-- require MetingJS -->
+                    <script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script>
+
+                    <meting-js server="netease" type="playlist" id="14391508882"
+                        api="https://api.injahow.cn/meting/?server=:server&type=:type&id=:id&r=:r" list-folded="false">
+                    </meting-js>
+                    <!-- 在网易云音乐上创建一个歌单，然后将歌单ID填入id属性中 -->
+                </div>
+            </div>
+        </nav>
+
+    </main>
+
+    <script src="js/script.js"></script>
+
+</body>
+
+</html>
