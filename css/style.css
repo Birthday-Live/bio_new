@@ -1,0 +1,686 @@
+:root {
+    /* 默认回退方案：Material Blue 深色系 */
+    --md-sys-color-primary: #a1c9ff;
+    --md-sys-color-on-primary: #00325b;
+    --md-sys-color-primary-container: #004881;
+    --md-sys-color-on-primary-container: #d2e4ff;
+    --md-sys-color-surface: #181a1b;
+    --md-sys-color-on-surface: #e2e2e6;
+    --md-sys-color-surface-variant: #43474e;
+    --md-sys-color-on-surface-variant: #c3c7cf;
+    --md-sys-color-outline: #8d9199;
+}
+
+body {
+    margin: 0;
+    background-color: transparent;
+    color: var(--md-sys-color-on-surface);
+    font-family: 'HarmonyOS Sans', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+    transition: color 0.3s ease;
+}
+
+centered {
+    text-align: center;
+}
+
+/* 背景处理 - 双图层 */
+#bg-canvas,
+#bg-canvas-back {
+    position: fixed;
+    top: -5%;
+    left: -5%;
+    width: 110%;
+    height: 110%;
+    z-index: 0;
+    object-fit: cover;
+    filter: brightness(0.4) blur(10px);
+    transition: opacity 0.8s ease;
+    pointer-events: none;
+    transform-origin: center center;
+    will-change: transform;
+}
+
+#bg-canvas-back {
+    z-index: -1;
+    opacity: 0;
+}
+
+.fallback-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-color: #181a1b;
+}
+
+/* 背景轮换控制 */
+.bg-controls {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(28, 27, 31, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: 40px;
+    padding: 8px 18px;
+}
+
+.bg-arrow {
+    background: none;
+    border: none;
+    color: var(--md-sys-color-on-surface-variant);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.3s ease, background 0.3s ease;
+}
+
+.bg-arrow:hover {
+    color: var(--md-sys-color-primary);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.bg-dots {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.bg-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--md-sys-color-outline);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.bg-dot.active {
+    background: var(--md-sys-color-primary);
+    width: 24px;
+    border-radius: 4px;
+}
+
+/* 主容器 */
+.container {
+    width: 90%;
+    max-width: 400px;
+    background-color: rgba(28, 27, 31, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: 28px;
+    padding: 32px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    position: relative;
+    z-index: 1;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 响应式布局 - 在足够宽的屏幕上使用左右布局 */
+@media (min-width: 768px) {
+    .container {
+        max-width: 800px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        text-align: left;
+        padding: 40px;
+    }
+    
+    .profile-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .nav-section {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+
+.avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid var(--md-sys-color-primary);
+    padding: 4px;
+    margin-bottom: 16px;
+    object-fit: cover;
+    transition: border-color 0.3s ease;
+}
+
+h1 { font-size: 1.5rem; font-weight: 500; margin: 8px 0; letter-spacing: 0.2px; }
+.bio { font-size: 0.9rem; color: var(--md-sys-color-on-surface-variant); margin-bottom: 24px; }
+
+/* MD3 Chips (标签) */
+.tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 32px; }
+.tag {
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+/* 在大屏幕上调整标签对齐 */
+@media (min-width: 768px) {
+    .tags {
+        justify-content: center; /* 保持居中对齐 */
+    }
+}
+
+/* 导航链接 */
+.link-card {
+    background-color: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface);
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border-radius: 16px;
+    text-decoration: none;
+    margin-bottom: 12px;
+    transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.link-card:hover {
+    background-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    transform: scale(1.02);
+}
+
+.link-card .material-symbols-outlined {
+    width: 24px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+}
+
+.link-card .material-symbols-outlined:first-child {
+    margin-right: 12px;
+}
+
+.link-text { 
+    flex-grow: 1; 
+    text-align: left; 
+    font-weight: 500; 
+    font-size: 0.95rem; /* 统一主项目字体大小 */
+}
+
+/* 在大屏幕上调整导航链接样式 */
+@media (min-width: 768px) {
+    .link-card {
+        margin-bottom: 0; /* 在flex布局中移除底部边距 */
+    }
+}
+
+/* ============================================================
+   Telegram 风格链接预览卡片
+   ============================================================ */
+.link-preview-card {
+    display: block;
+    background-color: var(--md-sys-color-surface-variant);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    padding: 10px 14px 12px;
+    text-decoration: none;
+    color: var(--md-sys-color-on-surface);
+    transition: background-color 0.25s ease;
+}
+
+.link-preview-card:hover {
+    background-color: var(--md-sys-color-primary-container);
+}
+
+/* 顶部域名行 — Telegram 的强调色域名 */
+.preview-url-top {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--md-sys-color-primary);
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 6px;
+    transition: color 0.25s ease;
+}
+
+.link-preview-card:hover .preview-url-top {
+    color: var(--md-sys-color-on-primary-container);
+}
+
+/* 卡片主体：左侧缩略图 + 右侧文字 */
+.preview-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+/* 缩略图区域 */
+.preview-thumb {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--md-sys-color-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.25s ease;
+}
+
+.preview-thumb .material-symbols-outlined {
+    font-size: 22px;
+    color: var(--md-sys-color-on-surface-variant);
+    transition: color 0.25s ease;
+}
+
+.link-preview-card:hover .preview-thumb {
+    background: var(--md-sys-color-primary);
+}
+
+.link-preview-card:hover .preview-thumb .material-symbols-outlined {
+    color: var(--md-sys-color-on-primary);
+}
+
+/* 真实 favicon / og:image 图片 — 默认隐藏，JS 加载成功后显示 */
+.preview-favicon {
+    display: none;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.25s ease;
+}
+
+/* 图片加载成功时的状态 */
+.preview-thumb.has-image .preview-favicon {
+    display: block;
+}
+
+.preview-thumb.has-image .preview-icon-fallback {
+    display: none;
+}
+
+.link-preview-card:hover .preview-favicon {
+    transform: scale(1.08);
+}
+
+/* 信息区 */
+.preview-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+}
+
+.preview-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.35;
+    /* 允许两行 */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color 0.25s ease;
+}
+
+.preview-desc {
+    font-size: 0.78rem;
+    color: var(--md-sys-color-on-surface-variant);
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color 0.25s ease;
+}
+
+.link-preview-card:hover .preview-desc {
+    color: var(--md-sys-color-on-primary-container);
+}
+
+/* 大屏幕下预览卡片适配 */
+@media (min-width: 768px) {
+    .link-preview-card {
+        margin-bottom: 0;
+    }
+}
+
+/* 下拉菜单样式 */
+.dropdown {
+    position: relative;
+    width: 100%;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* 在大屏幕上调整下拉菜单样式 */
+@media (min-width: 768px) {
+    .dropdown {
+        margin-bottom: 0; /* 在flex布局中移除底部边距 */
+        align-items: stretch; /* 拉伸对齐以适应导航区域 */
+    }
+}
+
+.dropdown-trigger {
+    cursor: pointer;
+    margin-bottom: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.dropdown-trigger .arrow {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dropdown.active .dropdown-trigger .arrow {
+    transform: rotate(180deg);
+}
+
+.dropdown-content {
+    display: none;
+    background-color: var(--md-sys-color-surface-variant);
+    border-radius: 16px;
+    margin-top: 8px;
+    overflow: hidden;
+    width: 85%; /* 子项目比主项目窄 */
+    animation: fadeInDown 0.3s ease;
+    border: 1px solid rgba(var(--md-sys-color-outline), 0.1);
+}
+
+/* Music下拉菜单特殊样式 - 透明背景 */
+.music-dropdown .dropdown-content {
+    background-color: transparent;
+    border: none;
+    width: 100%;
+}
+
+.dropdown.active .dropdown-content {
+    display: block;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    color: var(--md-sys-color-on-surface);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 0.95rem; /* 统一子项目字体大小 */
+    font-weight: 500;
+}
+
+.dropdown-item:hover {
+    background-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+}
+
+.dropdown-item .material-symbols-outlined {
+    margin-right: 12px;
+    font-size: 22px; /* 稍微缩小图标使其与文字更协调 */
+    width: 24px;
+    display: flex;
+    justify-content: center;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 移动端细微调整 */
+@media (max-width: 480px) {
+    .container {
+        padding: 24px;
+    }
+
+    /* 有控制栏时才加底部间距 */
+    body:not(.no-bg-controls) .container {
+        margin-bottom: 100px;
+    }
+
+    /* 背景控制栏缩小，避免遮挡内容 */
+    .bg-controls {
+        bottom: 12px;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 32px;
+    }
+
+    .bg-dot {
+        width: 6px;
+        height: 6px;
+    }
+
+    .bg-dot.active {
+        width: 18px;
+    }
+
+    .bg-arrow .material-symbols-outlined {
+        font-size: 20px;
+    }
+}
+
+/* ============================================================
+   APlayer 深色主题覆盖 — 跟随页面 MD3 动态色彩系统
+   ============================================================ */
+
+/* --- 主容器 --- */
+.aplayer {
+    background: var(--md-sys-color-surface) !important;
+    border: 1px solid var(--md-sys-color-outline) !important;
+    border-radius: 16px !important;
+    font-family: 'HarmonyOS Sans', sans-serif !important;
+    color: var(--md-sys-color-on-surface) !important;
+    transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.4s ease,
+                color 0.4s ease;
+}
+
+/* --- 封面区域 --- */
+.aplayer .aplayer-pic {
+    border-radius: 12px 0 0 12px !important;
+}
+
+/* --- 信息面板 --- */
+.aplayer .aplayer-info {
+    background: transparent !important;
+    border-bottom-color: var(--md-sys-color-outline) !important;
+}
+
+.aplayer .aplayer-info .aplayer-music {
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+.aplayer .aplayer-info .aplayer-music .aplayer-title {
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+.aplayer .aplayer-info .aplayer-music .aplayer-author {
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+/* --- 控制器（播放/暂停按钮）--- */
+.aplayer .aplayer-controller {
+    background: transparent !important;
+}
+
+.aplayer .aplayer-controller .aplayer-time {
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+.aplayer .aplayer-controller .aplayer-time .aplayer-icon {
+    color: var(--md-sys-color-on-surface) !important;
+    transition: color 0.3s ease;
+}
+
+.aplayer .aplayer-controller .aplayer-time .aplayer-icon:hover {
+    color: var(--md-sys-color-primary) !important;
+}
+
+/* --- 音量图标 --- */
+.aplayer .aplayer-controller .aplayer-volume-wrap .aplayer-icon {
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+.aplayer .aplayer-controller .aplayer-volume-wrap .aplayer-icon:hover {
+    color: var(--md-sys-color-primary) !important;
+}
+
+/* --- 进度条背景 --- */
+.aplayer .aplayer-controller .aplayer-bar-wrap {
+    background: transparent !important;
+}
+
+.aplayer .aplayer-controller .aplayer-bar-wrap .aplayer-bar {
+    background: var(--md-sys-color-surface-variant) !important;
+}
+
+/* --- 已播放进度（使用主色）--- */
+.aplayer .aplayer-controller .aplayer-bar-wrap .aplayer-bar .aplayer-loaded {
+    background: var(--md-sys-color-outline) !important;
+}
+
+.aplayer .aplayer-controller .aplayer-bar-wrap .aplayer-bar .aplayer-played {
+    background: var(--md-sys-color-primary) !important;
+}
+
+.aplayer .aplayer-controller .aplayer-bar-wrap .aplayer-bar .aplayer-played .aplayer-thumb {
+    background: var(--md-sys-color-primary) !important;
+    border-color: var(--md-sys-color-primary) !important;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+/* --- 播放列表按钮 --- */
+.aplayer .aplayer-controller .aplayer-icon-menu {
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+.aplayer .aplayer-controller .aplayer-icon-menu:hover {
+    color: var(--md-sys-color-primary) !important;
+}
+
+/* --- 播放列表面板 --- */
+.aplayer .aplayer-list {
+    background: var(--md-sys-color-surface) !important;
+    border-top: 1px solid var(--md-sys-color-outline) !important;
+    border-radius: 0 0 16px 16px !important;
+}
+
+.aplayer .aplayer-list ol {
+    background: transparent !important;
+}
+
+.aplayer .aplayer-list ol li {
+    color: var(--md-sys-color-on-surface-variant) !important;
+    border-bottom-color: var(--md-sys-color-outline) !important;
+    transition: all 0.2s ease;
+}
+
+.aplayer .aplayer-list ol li:hover {
+    background: var(--md-sys-color-surface-variant) !important;
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+.aplayer .aplayer-list ol li.aplayer-list-light {
+    background: var(--md-sys-color-primary-container) !important;
+    color: var(--md-sys-color-on-primary-container) !important;
+}
+
+.aplayer .aplayer-list ol li .aplayer-list-index {
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+.aplayer .aplayer-list ol li .aplayer-list-author {
+    color: var(--md-sys-color-outline) !important;
+}
+
+.aplayer .aplayer-list ol li .aplayer-list-cur {
+    color: var(--md-sys-color-primary) !important;
+}
+
+/* --- 滚动条 --- */
+.aplayer .aplayer-list ol::-webkit-scrollbar-thumb {
+    background: var(--md-sys-color-surface-variant) !important;
+    border-radius: 4px;
+}
+
+.aplayer .aplayer-list ol::-webkit-scrollbar-thumb:hover {
+    background: var(--md-sys-color-outline) !important;
+}
+
+/* --- 歌词面板（如果有）--- */
+.aplayer .aplayer-lrc {
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+.aplayer .aplayer-lrc p {
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+.aplayer .aplayer-lrc p.aplayer-lrc-current {
+    color: var(--md-sys-color-primary) !important;
+}
+
+/* 去掉歌词区域底部的白色渐变阴影 */
+.aplayer .aplayer-lrc::after {
+    display: none !important;
+}
+
+/* --- 迷你模式 --- */
+.aplayer.aplayer-withlist .aplayer-info {
+    border-bottom-color: var(--md-sys-color-outline) !important;
+}
+
+/* --- 当播放列表折叠时底部圆角 --- */
+.aplayer.aplayer-narrow .aplayer-list,
+.aplayer.aplayer-withlrc .aplayer-list {
+    border-radius: 0 0 16px 16px !important;
+}
+
+/* --- 移动端适配 --- */
+@media (max-width: 480px) {
+    .aplayer {
+        border-radius: 12px !important;
+    }
+    .aplayer .aplayer-pic {
+        border-radius: 8px 0 0 8px !important;
+    }
+    .aplayer .aplayer-list {
+        border-radius: 0 0 12px 12px !important;
+    }
+}
