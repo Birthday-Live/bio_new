@@ -3,77 +3,64 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>进入页面</title>
+<title>Loading...</title>
 
 <style>
-    *{
-        margin:0;
-        padding:0;
-        box-sizing:border-box;
-    }
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
 
-    body{
-        height:100vh;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        flex-direction:column;
-        background:#111;
-        color:#fff;
-        font-family:"Microsoft YaHei",sans-serif;
-        cursor:pointer;
-        overflow:hidden;
-    }
+body{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    background:#111;
+    color:#fff;
+    font-family:"Microsoft YaHei",sans-serif;
+}
 
-    #tip{
-        font-size:24px;
-        margin-bottom:20px;
-    }
+.text{
+    margin-bottom:20px;
+    font-size:20px;
+}
 
-    .progress-box{
-        width:300px;
-        height:10px;
-        background:rgba(255,255,255,.15);
-        border-radius:99px;
-        overflow:hidden;
-        display:none;
-    }
+.bar{
+    width:320px;
+    height:10px;
+    background:rgba(255,255,255,.15);
+    border-radius:999px;
+    overflow:hidden;
+}
 
-    .progress{
-        width:0%;
-        height:100%;
-        background:#4cafef;
-        border-radius:99px;
-    }
+.progress{
+    width:0%;
+    height:100%;
+    background:#4cafef;
+    animation:load 0.5s linear forwards;
+}
+
+@keyframes load{
+    from{width:0%;}
+    to{width:100%;}
+}
 </style>
 </head>
 <body>
 
-<div id="tip">点击进入</div>
+<div class="text">正在进入...</div>
 
-<div class="progress-box" id="box">
-    <div class="progress" id="progress"></div>
+<div class="bar">
+    <div class="progress"></div>
 </div>
 
 <script>
-document.addEventListener("click", function() {
-
-    document.body.style.cursor = "default";
-
-    document.getElementById("tip").innerText = "加载中...";
-    document.getElementById("box").style.display = "block";
-
-    const progress = document.getElementById("progress");
-
-    // 0.5秒进度条
-    progress.style.transition = "width 0.5s linear";
-    progress.style.width = "100%";
-
-    setTimeout(() => {
-        window.location.href = "https://welcome.chisato.org.cn";
-    }, 500);
-
-}, { once: true });
+setTimeout(() => {
+    location.replace("https://welcome.chisato.org.cn");
+}, 500);
 </script>
 
 </body>
