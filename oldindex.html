@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>进入页面</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #111;
+            color: white;
+            font-family: sans-serif;
+            cursor: pointer;
+        }
+        .tip {
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="tip">点击任意位置进入</div>
+
+    <script>
+        document.addEventListener('click', function () {
+            document.body.innerHTML = '<div class="tip">正在跳转...</div>';
+
+            setTimeout(function () {
+                window.location.href = 'https://welcome.chisato.org.cn';
+            }, 500); // 延迟1秒
+        }, { once: true });
+    </script>
+</body>
+</html>
+```0
