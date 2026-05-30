@@ -1,38 +1,80 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>进入页面</title>
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #111;
-            color: white;
-            font-family: sans-serif;
-            cursor: pointer;
-        }
-        .tip {
-            font-size: 24px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>进入页面</title>
+
+<style>
+    *{
+        margin:0;
+        padding:0;
+        box-sizing:border-box;
+    }
+
+    body{
+        height:100vh;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        flex-direction:column;
+        background:#111;
+        color:#fff;
+        font-family:"Microsoft YaHei",sans-serif;
+        cursor:pointer;
+        overflow:hidden;
+    }
+
+    #tip{
+        font-size:24px;
+        margin-bottom:20px;
+    }
+
+    .progress-box{
+        width:300px;
+        height:10px;
+        background:rgba(255,255,255,.15);
+        border-radius:99px;
+        overflow:hidden;
+        display:none;
+    }
+
+    .progress{
+        width:0%;
+        height:100%;
+        background:#4cafef;
+        border-radius:99px;
+    }
+</style>
 </head>
 <body>
-    <div class="tip">点击任意位置进入</div>
 
-    <script>
-        document.addEventListener('click', function () {
-            document.body.innerHTML = '<div class="tip">正在跳转...</div>';
+<div id="tip">点击进入</div>
 
-            setTimeout(function () {
-                window.location.href = 'https://welcome.chisato.org.cn';
-            }, 500); // 延迟1秒
-        }, { once: true });
-    </script>
+<div class="progress-box" id="box">
+    <div class="progress" id="progress"></div>
+</div>
+
+<script>
+document.addEventListener("click", function() {
+
+    document.body.style.cursor = "default";
+
+    document.getElementById("tip").innerText = "加载中...";
+    document.getElementById("box").style.display = "block";
+
+    const progress = document.getElementById("progress");
+
+    // 0.5秒进度条
+    progress.style.transition = "width 0.5s linear";
+    progress.style.width = "100%";
+
+    setTimeout(() => {
+        window.location.href = "https://welcome.chisato.org.cn";
+    }, 500);
+
+}, { once: true });
+</script>
+
 </body>
 </html>
-```0
