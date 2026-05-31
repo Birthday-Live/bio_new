@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>手机备份 JSON 数据分析工具</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .download-app-link {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 14px;
+            color: #64748b;
+        }
+        .download-app-link a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: bold;
+            border-bottom: 1px dashed #3b82f6;
+            padding-bottom: 2px;
+        }
+        .download-app-link a:hover {
+            color: #2563eb;
+            border-bottom-style: solid;
+        }
+        .upload-box {
+            background: #fff;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        .upload-box:hover {
+            border-color: #3b82f6;
+            background: #f8fafc;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #2563eb;
+        }
+        button.download-btn {
+            background-color: #0284c7; /* 深天空蓝 */
+        }
+        button.download-btn:hover {
+            background-color: #0369a1;
+        }
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .info-item {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        .info-label {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+        .info-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1e293b;
+        }
+        .search-box {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+        .table-wrapper {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f1f5f9;
+            position: sticky;
+            top: 0;
+            color: #475569;
+        }
+        tr:hover {
+            background-color: #f8fafc;
+        }
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .tab-btn {
+            background-color: #e2e8f0;
+            color: #475569;
+        }
+        .tab-btn.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>手机备份 JSON 数据可视化分析工具</h1>
+    
+    <div class="download-app-link">
+        如果没有下载APP，<a href="http://chisato.org.cn/android-json.apk" target="_blank">点击这里下载</a>
+    </div>
+    
+    <div class="upload-box" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <p style="margin: 0; font-size: 16px; color: #475569;">把备份的 JSON 或 TXT 文件拖到这里，或者 <b>点击上传</b></p>
+        <input type="file" id="fileInput" accept=".json,.txt" style="display: none">
+    </div>
+
+    <div class="btn-group" id="actionGroup" style="display: none;">
+        <button class="download-btn" onclick="downloadIntegratedCSV()">📊 一键下载全部整合数据 (CSV表格)</button>
+    </div>
+
+    <div class="card" id="deviceCard">
+        <h3 style="margin-top:0; color:#1e293b;">📱 设备基本信息</h3>
+        <div class="info-grid" id="deviceGrid"></div>
+    </div>
+
+    <div class="card" id="detailCard">
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="switchTab('contacts')">联系人列表 (<span id="count-contacts">0</span>)</button>
+            <button class="tab-btn" onclick="switchTab('apps')">已安装应用 (<span id="count-apps">0</span>)</button>
+        </div>
+        
+        <input type="text" class="search-box" id="searchBox" placeholder="输入关键字搜索..." oninput="filterData()">
+        
+        <div class="table-wrapper">
+            <table id="dataTable">
+                <thead><tr id="tableHeader"></tr></thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let jsonData = null;
+    let currentTab = 'contacts';
+
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+
+    fileInput.addEventListener('change', handleFile);
+    
+    dropZone.addEventListener('dragover', (e) => e.preventDefault());
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.files.length > 0) {
+            fileInput.files = e.dataTransfer.files;
+            handleFile();
+        }
+    });
+
+    function handleFile() {
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                let rawText = e.target.result.trim();
+                if(rawText.startsWith("{") && rawText.includes("fullContent:")) {
+                     const match = rawText.match(/fullContent:\s*([\s\S]*)/);
+                     if(match) rawText = match[1];
+                }
+                jsonData = JSON.parse(rawText);
+                renderData();
+            } catch (err) {
+                alert('JSON 文件格式解析失败，请检查是否完整！');
+            }
+        };
+        reader.readAsText(file, 'UTF-8');
+    }
+
+    function renderData() {
+        if (!jsonData) return;
+
+        document.getElementById('deviceCard').style.display = 'block';
+        document.getElementById('detailCard').style.display = 'block';
+        document.getElementById('actionGroup').style.display = 'flex';
+
+        const dev = jsonData.device_info || {};
+        const sims = jsonData.phone_numbers ? jsonData.phone_numbers.join(' | ') : '无';
+        const saveTime = jsonData.save_time ? new Date(jsonData.save_time).toLocaleString() : '未知';
+        
+        const infoData = [
+            { label: '手机品牌', value: dev.brand || '未知' },
+            { label: '设备型号', value: dev.model || '未知' },
+            { label: '安卓版本', value: 'Android ' + (dev.android_version || '未知') },
+            { label: 'SDK 版本', value: dev.sdk || '未知' },
+            { label: '本机 SIM 卡/紧急号码', value: sims },
+            { label: '数据读取时间', value: saveTime }
+        ];
+
+        document.getElementById('deviceGrid').innerHTML = infoData.map(item => `
+            <div class="info-item">
+                <div class="info-label">${item.label}</div>
+                <div class="info-value">${item.value}</div>
+            </div>
+        `).join('');
+
+        document.getElementById('count-contacts').innerText = (jsonData.contacts || []).length;
+        document.getElementById('count-apps').innerText = (jsonData.installed_apps || []).length;
+
+        switchTab('contacts');
+    }
+
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        if(event && event.target) event.target.classList.add('active');
+        document.getElementById('searchBox').value = '';
+        
+        const header = document.getElementById('tableHeader');
+        if (currentTab === 'contacts') {
+            header.innerHTML = '<th>姓名</th><th>电话号码</th>';
+        } else {
+            header.innerHTML = '<th>应用名称</th><th>包名 (Package)</th><th>版本号</th>';
+        }
+        filterData();
+    }
+
+    function filterData() {
+        if (!jsonData) return;
+        const keyword = document.getElementById('searchBox').value.toLowerCase();
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
+        if (currentTab === 'contacts') {
+            const list = jsonData.contacts || [];
+            list.forEach(item => {
+                if (!keyword || item.name.toLowerCase().includes(keyword) || item.phone.includes(keyword)) {
+                    tbody.innerHTML += `<tr><td><b>${item.name}</b></td><td>${item.phone}</td></tr>`;
+                }
+            });
+        } else {
+            const list = jsonData.installed_apps || [];
+            list.forEach(item => {
+                if (!keyword || item.name.toLowerCase().includes(keyword) || item.package.toLowerCase().includes(keyword)) {
+                    tbody.innerHTML += `<tr><td><b>${item.name}</b></td><td><code style="color:#e11d48">${item.package}</code></td><td>${item.version}</td></tr>`;
+                }
+            });
+        }
+    }
+
+    // 核心重构：无三方依赖，纯原生前端拼装生成无损、防乱码的整合型单张 CSV
+    function downloadIntegratedCSV() {
+        if (!jsonData) return;
+
+        const dev = jsonData.device_info || {};
+        const sims = jsonData.phone_numbers ? jsonData.phone_numbers.join(' | ') : '无';
+        const saveTime = jsonData.save_time ? new Date(jsonData.save_time).toLocaleString() : '未知';
+
+        let csvString = "\uFEFF"; // 关键：注入 UTF-8 BOM，确保 Excel 双击不乱码
+
+        // 辅助转义函数，保证名字里带有逗号、双引号时，CSV 不会裂开
+        const escape = (val) => `"${String(val || '').replace(/"/g, '""')}"`;
+
+        // 1. 拼装设备信息块
+        csvString += `${escape('📊 [模块一] 设备基本概览')},,\n`;
+        csvString += `${escape('项目 (Item)')},${escape('参数值 (Value)')},\n`;
+        csvString += `${escape('手机品牌 (Brand)')},${escape(dev.brand || '未知')},\n`;
+        csvString += `${escape('设备型号 (Model)')},${escape(dev.model || '未知')},\n`;
+        csvString += `${escape('安卓版本 (Android Version)')},${escape('Android ' + (dev.android_version || '未知'))},\n`;
+        csvString += `${escape('SDK 版本 (SDK)')},${escape(dev.sdk || '未知')},\n`;
+        csvString += `${escape('本机 SIM 卡/紧急号码')},${escape(sims)},\n`;
+        csvString += `${escape('数据读取时间')},${escape(saveTime)},\n`;
+        csvString += `,,\n`; // 空白行隔开
+
+        // 2. 拼装联系人块
+        csvString += `${escape('👥 [模块二] 通讯录联系人列表')},,\n`;
+        csvString += `${escape('姓名 (Name)')},${escape('电话号码 (Phone)')},\n`;
+        const listContacts = jsonData.contacts || [];
+        listContacts.forEach(item => {
+            csvString += `${escape(item.name)},${escape(item.phone)},\n`;
+        });
+        csvString += `,,\n`; // 空白行隔开
+
+        // 3. 拼装应用列表块
+        csvString += `${escape('📦 [模块三] 已安装应用组件列表')},,\n`;
+        csvString += `${escape('应用名称 (App Name)')},${escape('包名 (Package Name)')},${escape('版本号 (Version)')}\n`;
+        const listApps = jsonData.installed_apps || [];
+        listApps.forEach(item => {
+            csvString += `${escape(item.name)},${escape(item.package)},${escape(item.version)}\n`;
+        });
+
+        // 触发本地 CSV 下载
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        const fileName = `${dev.brand || '手机'}_${dev.model || '设备'}_整合报告.csv`;
+        link.setAttribute("download", fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+
+</body>
+</html>
