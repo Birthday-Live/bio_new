@@ -1,0 +1,110 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#0d1117;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow:hidden;
+    font-family:"Microsoft YaHei";
+}
+
+.bg1{
+    position:absolute;
+    width:350px;
+    height:350px;
+    border-radius:50%;
+    background:#229ED9;
+    filter:blur(150px);
+    opacity:.15;
+    top:-100px;
+    left:-80px;
+}
+
+.bg2{
+    position:absolute;
+    width:350px;
+    height:350px;
+    border-radius:50%;
+    background:#0088cc;
+    filter:blur(150px);
+    opacity:.1;
+    bottom:-100px;
+    right:-80px;
+}
+
+.card{
+    width:450px;
+    padding:60px;
+    text-align:center;
+
+    background:rgba(255,255,255,.03);
+
+    border:1px solid rgba(255,255,255,.08);
+
+    border-radius:25px;
+
+    backdrop-filter:blur(20px);
+
+    box-shadow:
+    0 0 30px rgba(34,158,217,.15);
+}
+
+h1{
+    color:white;
+    font-size:45px;
+    font-weight:300;
+    letter-spacing:5px;
+}
+
+.line{
+    width:80px;
+    height:3px;
+    background:#229ED9;
+    margin:20px auto 35px;
+    border-radius:10px;
+}
+
+p{
+    color:#9aa4b2;
+    font-size:18px;
+    margin-bottom:40px;
+}
+
+button{
+    width:220px;
+    height:58px;
+
+    border:none;
+
+    border-radius:50px;
+
+    background:linear-gradient(135deg,#229ED9,#1C8BC3);
+
+    color:white;
+
+    font-size:20px;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+    box-shadow:
+    0 8px 30px rgba(34,158,217,.3);
+}
+
+button:hover{
+    transform:translateY(-5px);
+
+    box-shadow:
+    0 15px 40px rgba(34,158,217,.5);
+}
+
+button:active{
+    transform:scale(.96);
+}
