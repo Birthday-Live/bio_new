@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TG 多媒体全功能发布面板</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h2>TG 多媒体发布面板</h2>
+
+        <div class="form-group">
+            <label for="botToken">Bot Token</label>
+            <input type="text" id="botToken" placeholder="输入你的机器人 Token">
+        </div>
+
+        <div class="form-group">
+            <label for="chatId">Chat ID</label>
+            <input type="text" id="chatId" placeholder="例如：-100xxxxxxxxx">
+        </div>
+
+        <label>发布媒体类型</label>
+        <div class="type-selector">
+            <div class="type-btn active" onclick="switchType('video', 'video/*', 'video.mp4', event)">📹 视频</div>
+            <div class="type-btn" onclick="switchType('photo', 'image/*', 'photo.jpg', event)">🖼️ 图片</div>
+            <div class="type-btn" onclick="switchType('document', '*', 'file.zip', event)">📁 文件</div>
+            <div class="type-btn" onclick="switchType('audio', 'audio/*', 'audio.mp3', event)">🎵 音频</div>
+            <div class="type-btn" onclick="switchType('sticker', 'image/webp,image/png', 'sticker.webp', event)">✨ 贴纸</div>
+        </div>
+
+        <div class="form-group" id="captionGroup">
+            <label for="mediaCaption">附言 (自定义文本)</label>
+            <input type="text" id="mediaCaption" placeholder="聊点什么吧...（选填）">
+        </div>
+
+        <div class="form-group">
+            <label id="fileLabel">选择文件</label>
+            <div class="file-drop-zone" id="dropZone">
+                <p id="dropZoneText">📁 点击或拖拽文件到此处</p>
+                <div class="file-name" id="fileNameDisplay"></div>
+                <input type="file" id="mediaFile" accept="video/*" onchange="updateFileName()">
+            </div>
+        </div>
+
+        <button class="submit-btn" onclick="processAndSend()">一键转换并发送</button>
+
+        <div id="status"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
