@@ -1,0 +1,589 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram 消息直发工具</title>
+    <!-- Tailwind CSS 用于现代化界面 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Marked 库解析标准 Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- DOMPurify 防范富文本 XSS -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #0b141a;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        /* 模拟 Telegram 气泡样式 */
+        .tg-bubble {
+            background-color: #182533;
+            border-radius: 12px;
+            color: #f5f6f7;
+            border: 1px solid #233345;
+        }
+        /* Telegram 官方支持的 HTML 样式渲染 */
+        .tg-bubble b, .tg-bubble strong { font-weight: 700; color: #fff; }
+        .tg-bubble i, .tg-bubble em { font-style: italic; }
+        .tg-bubble u { text-decoration: underline; }
+        .tg-bubble s, .tg-bubble del { text-decoration: line-through; color: #7f91a4; }
+        .tg-bubble tg-spoiler {
+            background-color: #2b394a;
+            color: transparent;
+            border-radius: 4px;
+            padding: 0 4px;
+            cursor: pointer;
+            transition: color 0.3s ease, background-color 0.3s ease;
+        }
+        .tg-bubble tg-spoiler:hover {
+            background-color: #38485c;
+        }
+        .tg-bubble tg-spoiler.revealed {
+            background-color: transparent;
+            color: inherit;
+        }
+        .tg-bubble blockquote {
+            border-left: 3px solid #5288c1;
+            padding-left: 12px;
+            margin: 8px 0;
+            color: #b1c3d5;
+            background: rgba(82, 136, 193, 0.08);
+            border-radius: 0 6px 6px 0;
+            padding-top: 4px;
+            padding-bottom: 4px;
+        }
+        .tg-bubble code {
+            background-color: rgba(0, 0, 0, 0.3);
+            color: #e4e7eb;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9em;
+        }
+        .tg-bubble pre {
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .tg-bubble pre code {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+            display: block;
+        }
+        .tg-bubble a {
+            color: #64b5f6;
+            text-decoration: none;
+        }
+        .tg-bubble a:hover {
+            text-decoration: underline;
+        }
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b141a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #233345;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2f455d;
+        }
+    </style>
+</head>
+<body class="text-slate-200 min-h-screen pb-12">
+
+<div class="max-w-5xl mx-auto px-4 pt-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8 border-b border-slate-800 pb-5">
+        <div class="flex items-center space-x-3">
+            <span class="text-3xl">📤</span>
+            <div>
+                <h1 class="text-xl font-bold text-white">Telegram 消息高保真直发工具</h1>
+                <p class="text-xs text-slate-400 mt-0.5">免服务器直连，支持标准 Markdown 并精准映射官方 HTML 实体白名单</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button onclick="clearConfig()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition">
+                🗑️ 清除缓存
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Panel: Configuration and Editing -->
+        <div class="lg:col-span-7 space-y-5">
+            <!-- Credentials Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl">
+                <h2 class="text-sm font-semibold text-white uppercase tracking-wider mb-4 flex items-center">
+                    <span class="mr-2">⚙️</span> 机器人节点配置
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Bot Token</label>
+                        <div class="relative">
+                            <input type="password" id="token" 
+                                class="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg py-2 px-3 text-sm text-slate-200 outline-none transition code-font"
+                                placeholder="例如: 123456:ABC-DEF...">
+                            <button onclick="toggleTokenVisibility()" class="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4" id="eye-icon">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Chat ID / 频道公网ID</label>
+                        <input type="text" id="chatid" 
+                            class="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg py-2 px-3 text-sm text-slate-200 outline-none transition code-font"
+                            placeholder="例如: -100xxxxxx 或 @channel">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message Editor Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl flex flex-col">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-sm font-semibold text-white uppercase tracking-wider flex items-center">
+                        <span class="mr-2">✍️</span> 编辑 Markdown 消息
+                    </h2>
+                    <!-- Quick Formatting Toolbar -->
+                    <div class="flex items-center space-x-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
+                        <button onclick="insertFormat('**', '**')" class="px-2 py-0.5 text-xs text-slate-400 hover:text-white hover:bg-slate-800 rounded transition font-bold">B</button>
+                        <button onclick="insertFormat('*', '*')" class="px-2 py-0.5 text-xs text-slate-400 hover:text-white hover:bg-slate-800 rounded transition italic">I</button>
+                        <button onclick="insertFormat('__', '__')" class="px-2 py-0.5 text-xs text-slate-400 hover:text-white hover:bg-slate-800 rounded transition underline">U</button>
+                        <button onclick="insertFormat('~~', '~~')" class="px-2 py-0.5 text-xs text-slate-400 hover:text-white hover:bg-slate-800 rounded transition line-through">S</button>
+                        <button onclick="insertFormat('||', '||')" class="px-2 py-0.5 text-xs text-slate-400 hover:text-white hover:bg-slate-850 rounded transition text-yellow-500" title="剧透 Spoiler">👁️‍🗨️</button>
+                        <button onclick="insertFormat('`', '`')" class="px-2 py-0.5 text-xs text-slate-400 hover:text-white hover:bg-slate-800 rounded transition code-font">&lt;&gt;</button>
+                        <button onclick="insertFormat('&gt; ', '')" class="px-2 py-0.5 text-xs text-slate-400 hover:text-white hover:bg-slate-800 rounded transition" title="引用 blockquote">“</button>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <textarea id="message" 
+                        class="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg p-3 text-sm text-slate-200 outline-none transition code-font resize-y min-h-[340px]"
+                        placeholder="在此自由编写标准 Markdown 文本，系统将高保真解析并发送至 Telegram..."></textarea>
+                    
+                    <!-- Character and Byte counter -->
+                    <div class="absolute bottom-2.5 right-3 text-[11px] text-slate-500 flex items-center space-x-2">
+                        <span id="char-count">0 / 4096 字符</span>
+                    </div>
+                </div>
+
+                <button onclick="sendMessage()" class="mt-4 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-4 rounded-lg shadow-lg hover:shadow-blue-900/20 active:scale-[0.98] transition flex items-center justify-center space-x-2">
+                    <span>🚀 一键编译并安全发送</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Panel: Real-time TG Emulator -->
+        <div class="lg:col-span-5 flex flex-col">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl flex-1 flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-sm font-semibold text-white uppercase tracking-wider flex items-center">
+                        <span class="mr-2">📱</span> Telegram 客户端高保真预览
+                    </h2>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-950 text-green-400 border border-green-900">
+                        <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5 animate-pulse"></span>HTML 高保真内核
+                    </span>
+                </div>
+                
+                <!-- Emulator Box -->
+                <div class="bg-[#0e1621] rounded-xl p-4 flex-1 flex flex-col justify-between border border-slate-950 min-h-[350px]">
+                    <!-- Message content wrapper -->
+                    <div class="flex items-start space-x-3">
+                        <!-- Bot Avatar -->
+                        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-sky-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold shadow-md shrink-0">
+                            Bot
+                        </div>
+                        <!-- Message bubble -->
+                        <div class="tg-bubble px-3.5 py-2.5 max-w-[85%] shadow-md relative break-words text-[14.5px] leading-relaxed">
+                            <div class="font-semibold text-[#5288c1] text-[13px] mb-0.5 flex items-center justify-between">
+                                <span>我的 Telegram 机器人</span>
+                                <span class="text-slate-500 text-[10px] font-normal">bot</span>
+                            </div>
+                            <div id="preview" class="whitespace-pre-wrap">提示：在左侧输入 Markdown，此处将自动呈现排版。</div>
+                            <!-- Time status -->
+                            <div class="text-right text-[10px] text-[#7f91a4] mt-1.5 flex items-center justify-end space-x-0.5 select-none">
+                                <span id="current-time">02:42</span>
+                                <span>✓✓</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Channel Join Button Emulator -->
+                    <div class="mt-4 pt-3 border-t border-slate-800/50 flex items-center justify-between text-xs text-slate-500">
+                        <span>💡 点击剧透区域可直接查看内容</span>
+                        <span>预览模式</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Global Toast Container -->
+<div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2"></div>
+
+<script>
+// 初始化 marked 基础配置，禁止默认的富文本转义污染
+marked.setOptions({
+    breaks: true,
+    gfm: true
+});
+
+const tokenInput = document.getElementById('token');
+const chatIdInput = document.getElementById('chatid');
+const messageInput = document.getElementById('message');
+const previewDiv = document.getElementById('preview');
+const charCountSpan = document.getElementById('char-count');
+const currentTimeSpan = document.getElementById('current-time');
+
+// 实时时间显示
+function updateTime() {
+    const now = new Date();
+    const hrs = String(now.getHours()).padStart(2, '0');
+    const mins = String(now.getMinutes()).padStart(2, '0');
+    currentTimeSpan.innerText = `${hrs}:${mins}`;
+}
+updateTime();
+setInterval(updateTime, 1000);
+
+// 1. 本地自动加载配置
+window.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('tgs_token')) tokenInput.value = localStorage.getItem('tgs_token');
+    if (localStorage.getItem('tgs_chatid')) chatIdInput.value = localStorage.getItem('tgs_chatid');
+    updatePreviewAndCount();
+});
+
+// 2. 实时自动保存配置
+tokenInput.addEventListener('input', () => {
+    localStorage.setItem('tgs_token', tokenInput.value.trim());
+});
+chatIdInput.addEventListener('input', () => {
+    localStorage.setItem('tgs_chatid', chatIdInput.value.trim());
+});
+
+// 3. 消息输入框实时监听：更新计数器和预览
+messageInput.addEventListener('input', updatePreviewAndCount);
+
+function updatePreviewAndCount() {
+    const rawVal = messageInput.value;
+    
+    // 字符数计算与极限高亮
+    const charLen = rawVal.length;
+    charCountSpan.innerText = `${charLen} / 4096 字符`;
+    if (charLen > 4096) {
+        charCountSpan.classList.add('text-red-500', 'font-bold');
+    } else {
+        charCountSpan.classList.remove('text-red-500', 'font-bold');
+    }
+
+    if (!rawVal.trim()) {
+        previewDiv.innerHTML = '<span class="text-slate-500 italic">在此处输入标准 Markdown，将完美自动预览排版...</span>';
+        return;
+    }
+
+    // 编译标准 Markdown 到 TG 支持的 HTML 标签流用于网页端完美预览
+    const customHtml = convertMarkdownToTelegramHtml(rawVal);
+    previewDiv.innerHTML = DOMPurify.sanitize(customHtml, {
+        ADD_TAGS: ['tg-spoiler'], // 显式允许 TG 剧透专属标签在净化中保留
+        ADD_ATTR: ['class']
+    });
+
+    // 为预览中的剧透标签添加一键点击显形事件
+    const spoilers = previewDiv.querySelectorAll('tg-spoiler');
+    spoilers.forEach(spoiler => {
+        spoiler.addEventListener('click', () => {
+            spoiler.classList.toggle('revealed');
+        });
+    });
+}
+
+// 4. 工具栏快捷插入函数
+function insertFormat(prefix, suffix) {
+    const start = messageInput.selectionStart;
+    const end = messageInput.selectionEnd;
+    const text = messageInput.value;
+    const selected = text.substring(start, end);
+    const replacement = prefix + selected + suffix;
+    
+    messageInput.value = text.substring(0, start) + replacement + text.substring(end);
+    messageInput.focus();
+    messageInput.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
+    updatePreviewAndCount();
+}
+
+// 5. 显隐 Token
+function toggleTokenVisibility() {
+    const eyeIcon = document.getElementById('eye-icon');
+    if (tokenInput.type === 'password') {
+        tokenInput.type = 'text';
+        eyeIcon.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+        `;
+    } else {
+        tokenInput.type = 'password';
+        eyeIcon.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+        `;
+    }
+}
+
+// 6. 清除配置
+function clearConfig() {
+    showConfirmModal("确定要清除保存在本地的 Token 和 Chat ID 吗？", () => {
+        localStorage.removeItem('tgs_token');
+        localStorage.removeItem('tgs_chatid');
+        tokenInput.value = '';
+        chatIdInput.value = '';
+        showToast("✅ 缓存配置已彻底清除", "info");
+    });
+}
+
+// ⭐【核心】极其严谨的：标准 Markdown ➔ 官方规范白名单 HTML 转换引擎
+function convertMarkdownToTelegramHtml(markdownText) {
+    // A. 预处理：将剧透特殊语法 ||spoiler|| 处理成自定义 HTML 标签以防 marked 解析失效
+    let processedText = markdownText.replace(/\|\|([\s\S]*?)\|\|/g, '<tg-spoiler>$1</tg-spoiler>');
+
+    // B. 将 Markdown 用 marked 解析为标准的常规网页 HTML
+    const standardHtml = marked.parse(processedText);
+
+    // C. 建立内存 DOM Parser 树，逐节点过滤与转换（过滤掉所有不合法的 P, H1~H6, DIV 等元素）
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(standardHtml, 'text/html');
+    
+    // 递归转换函数
+    function nodeToTelegram(node) {
+        // 1. 如果是文本节点：将其中的 HTML 特殊字符进行安全替换，保障 TG 发包合法
+        if (node.nodeType === Node.TEXT_NODE) {
+            return node.textContent
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        // 2. 如果不是元素节点，一律丢弃
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+            return '';
+        }
+
+        const tagName = node.tagName.toUpperCase();
+        
+        // 3. 特殊元素处理 ─ 绝对不能在 PRE / CODE 中包含任何其他格式化子元素
+        if (tagName === 'PRE') {
+            const codeNode = node.querySelector('code');
+            const innerText = codeNode ? codeNode.textContent : node.textContent;
+            
+            // 转义代码块内部文本
+            const escapedCode = innerText
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            // 匹配编译语言（TG 官方支持 <pre><code class="language-python">...</code></pre> 形式）
+            const className = codeNode ? codeNode.className : '';
+            const langMatch = className.match(/language-(\w+)/);
+            if (langMatch) {
+                return `<pre><code class="language-${langMatch[1]}">${escapedCode}</code></pre>`;
+            }
+            return `<pre>${escapedCode}</pre>`;
+        }
+
+        if (tagName === 'CODE') {
+            const escapedCode = node.textContent
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            return `<code>${escapedCode}</code>`;
+        }
+
+        // 递归编译子节点
+        let childrenHtml = '';
+        for (let child of node.childNodes) {
+            childrenHtml += nodeToTelegram(child);
+        }
+
+        // 4. 将 HTML5 的富文本标签「无损翻译」为 TG 官方支持的合法白名单标签
+        switch (tagName) {
+            case 'STRONG':
+            case 'B':
+                return `<b>${childrenHtml}</b>`;
+            case 'EM':
+            case 'I':
+                return `<i>${childrenHtml}</i>`;
+            case 'DEL':
+            case 'S':
+            case 'STRIKE':
+                return `<s>${childrenHtml}</s>`;
+            case 'U':
+            case 'INS':
+                return `<u>${childrenHtml}</u>`;
+            case 'A':
+                const href = node.getAttribute('href');
+                if (href && (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('tg://'))) {
+                    return `<a href="${href}">${childrenHtml}</a>`;
+                }
+                return childrenHtml; // 无效链接退化为纯文本
+            case 'BLOCKQUOTE':
+                return `<blockquote>${childrenHtml}</blockquote>`;
+            case 'TG-SPOILER':
+            case 'SPAN':
+                if (tagName === 'TG-SPOILER' || node.classList.contains('tg-spoiler')) {
+                    return `<tg-spoiler>${childrenHtml}</tg-spoiler>`;
+                }
+                return childrenHtml;
+            case 'H1':
+            case 'H2':
+            case 'H3':
+            case 'H4':
+            case 'H5':
+            case 'H6':
+                return `<b>${childrenHtml}</b>\n`; // 标题转为加粗换行
+            case 'P':
+                return `${childrenHtml}\n`;
+            case 'UL':
+            case 'OL':
+                return `${childrenHtml}\n`;
+            case 'LI':
+                return `• ${childrenHtml}\n`; // 列表规范转义
+            case 'BR':
+                return `\n`;
+            default:
+                return childrenHtml; // 未知/不支持的标签直接剥离并展平内容（例如 div, p, sections 等）
+        }
+    }
+
+    // 执行编译
+    let result = '';
+    for (let child of doc.body.childNodes) {
+        result += nodeToTelegram(child);
+    }
+    
+    return result.trim();
+}
+
+// 7. 发送消息函数
+async function sendMessage() {
+    const token = tokenInput.value.trim();
+    const chatId = chatIdInput.value.trim();
+    const rawMsg = messageInput.value.trim();
+
+    if (!token || !chatId || !rawMsg) {
+        showToast("❌ 请完整填写 Bot Token、Chat ID 和消息内容", "error");
+        return;
+    }
+
+    if (rawMsg.length > 4096) {
+        showToast("⚠️ 消息长度超出了 Telegram 官方 4096 字符的限制，可能会被截断！", "error");
+        return;
+    }
+
+    showToast("⚙️ 正在执行完美高保真编译...", "info");
+
+    // 编译提取 TG 白名单安全实体
+    const formattedHtml = convertMarkdownToTelegramHtml(rawMsg);
+
+    const apiUrl = `https://api.telegram.org/bot${token}/sendMessage`;
+
+    try {
+        const response = await fetch(apiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                chat_id: chatId,
+                text: formattedHtml,
+                parse_mode: "HTML" // 改用最高容错、最高保真的规范 HTML 格式
+            })
+        });
+
+        const data = await response.json();
+        if (data.ok) {
+            showToast("🚀 消息成功直发至 Telegram 客户端！", "success");
+        } else {
+            showToast(`❌ 接口拒绝接收：${data.description}`, "error");
+            console.error("Telegram 拒绝接收的报文内容流：\n", formattedHtml);
+        }
+    } catch (e) {
+        showToast(`❌ 网络请求失败：${e.message}`, "error");
+    }
+}
+
+// 8. 自定义精美 UI 组件 (替代 Alert / Confirm)
+function showToast(message, type = "success") {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `flex items-center p-4 rounded-lg shadow-2xl transition duration-300 transform translate-y-2 border ${
+        type === 'success' ? 'bg-slate-900 border-green-500 text-green-400' :
+        type === 'error' ? 'bg-slate-900 border-red-500 text-red-400' :
+        'bg-slate-900 border-blue-500 text-blue-400'
+    }`;
+    
+    toast.innerHTML = `
+        <div class="mr-3 font-semibold text-sm">${message}</div>
+    `;
+    
+    container.appendChild(toast);
+    
+    // 动效延时
+    setTimeout(() => {
+        toast.classList.remove('translate-y-2');
+        toast.classList.add('translate-y-0');
+    }, 10);
+
+    // 自动销毁
+    setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 4000);
+}
+
+function showConfirmModal(question, onConfirm) {
+    const backdrop = document.createElement('div');
+    backdrop.className = "fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4";
+    
+    const box = document.createElement('div');
+    box.className = "bg-slate-900 border border-slate-800 rounded-xl p-6 max-w-sm w-full shadow-2xl space-y-4";
+    
+    box.innerHTML = `
+        <h3 class="text-white font-bold text-base">⚠️ 确认操作</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">${question}</p>
+        <div class="flex items-center justify-end space-x-3">
+            <button id="modal-cancel" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold px-4 py-2 rounded-lg text-xs transition">取消</button>
+            <button id="modal-ok" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-lg text-xs transition shadow-lg shadow-red-900/10">确定</button>
+        </div>
+    `;
+    
+    backdrop.appendChild(box);
+    document.body.appendChild(backdrop);
+    
+    document.getElementById('modal-cancel').addEventListener('click', () => backdrop.remove());
+    document.getElementById('modal-ok').addEventListener('click', () => {
+        onConfirm();
+        backdrop.remove();
+    });
+}
+</script>
+</body>
+</html>
+
+
