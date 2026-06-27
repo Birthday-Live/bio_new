@@ -522,7 +522,7 @@ async function sendMessage() {
             console.error("Telegram 拒绝接收的报文内容流：\n", formattedHtml);
         }
     } catch (e) {
-        showToast(`❌ 网络请求失败：${e.message}`, "error");
+        showToast(`❌ 网络请求失败,请尝试打开VPN：${e.message}`, "error");
     }
 }
 
