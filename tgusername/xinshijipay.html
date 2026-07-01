@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Username Notice · @xinshijipay</title>
+
+<style>
+:root{
+    --bg:#f5f5f7;
+    --card:#ffffff;
+    --text:#1d1d1f;
+    --sub:#6e6e73;
+    --border:#e5e5ea;
+    --primary:#007aff;
+    --danger:#ff3b30;
+    --shadow:0 20px 60px rgba(0,0,0,.08);
+}
+
+@media (prefers-color-scheme:dark){
+:root{
+    --bg:#000;
+    --card:#1c1c1e;
+    --text:#f5f5f7;
+    --sub:#98989d;
+    --border:#2c2c2e;
+    --primary:#0a84ff;
+    --danger:#ff453a;
+    --shadow:none;
+}
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+    line-height:1.8;
+    padding:40px 20px;
+}
+
+.wrapper{
+    max-width:860px;
+    margin:auto;
+}
+
+.notice{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:24px;
+    overflow:hidden;
+    box-shadow:var(--shadow);
+    animation:fade .6s ease;
+}
+
+.header{
+    padding:48px 48px 36px;
+    text-align:center;
+    border-bottom:1px solid var(--border);
+}
+
+.badge{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 16px;
+    border-radius:999px;
+    background:rgba(0,122,255,.08);
+    color:var(--primary);
+    font-size:14px;
+    font-weight:600;
+}
+
+.badge svg{
+    width:18px;
+    height:18px;
+}
+
+h1{
+    margin-top:20px;
+    font-size:42px;
+    font-weight:700;
+    letter-spacing:-.03em;
+}
+
+.username{
+    margin-top:10px;
+    font-size:20px;
+    color:var(--sub);
+}
+
+.content{
+    padding:48px;
+}
+
+.section{
+    margin-bottom:42px;
+}
+
+.section:last-child{
+    margin-bottom:0;
+}
+
+.section h2{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:22px;
+    margin-bottom:20px;
+}
+
+.section h2 svg{
+    width:22px;
+    height:22px;
+    color:var(--primary);
+}
+
+p{
+    color:var(--text);
+    font-size:16px;
+}
+
+strong{
+    font-weight:700;
+}
+
+hr{
+    border:none;
+    border-top:1px solid var(--border);
+    margin:40px 0;
+}
+
+.linkbox{
+    margin:24px 0;
+    padding:18px 20px;
+    border-radius:16px;
+    background:rgba(0,122,255,.05);
+    border:1px solid rgba(0,122,255,.15);
+    word-break:break-all;
+}
+
+.linkbox a{
+    color:var(--primary);
+    text-decoration:none;
+    font-weight:600;
+}
+
+.warning{
+    margin-top:28px;
+    display:flex;
+    gap:16px;
+    padding:20px;
+    border-radius:18px;
+    background:rgba(255,59,48,.08);
+    border:1px solid rgba(255,59,48,.18);
+}
+
+.warning svg{
+    width:24px;
+    height:24px;
+    flex-shrink:0;
+    color:var(--danger);
+}
+
+.footer{
+    padding:24px 48px;
+    border-top:1px solid var(--border);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:18px;
+}
+
+.time{
+    color:var(--sub);
+    font-size:14px;
+}
+
+.button{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 22px;
+    border-radius:12px;
+    background:var(--primary);
+    color:#fff;
+    text-decoration:none;
+    font-weight:600;
+    transition:.2s;
+}
+
+.button:hover{
+    transform:translateY(-2px);
+}
+
+.button svg{
+    width:18px;
+    height:18px;
+}
+
+@media (max-width:768px){
+
+body{
+    padding:20px 12px;
+}
+
+.header{
+    padding:36px 24px 28px;
+}
+
+.content{
+    padding:30px 24px;
+}
+
+.footer{
+    padding:24px;
+    flex-direction:column;
+    align-items:flex-start;
+}
+
+h1{
+    font-size:30px;
+}
+
+.section h2{
+    font-size:20px;
+}
+
+p{
+    font-size:15px;
+}
+
+}
+
+@keyframes fade{
+from{
+opacity:0;
+transform:translateY(20px);
+}
+to{
+opacity:1;
+transform:none;
+}
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+<div class="notice">
+
+<div class="header">
+
+<div class="badge">
+
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M12 2l9 4v6c0 5-3.5 8.5-9 10-5.5-1.5-9-5-9-10V6l9-4z"/>
+</svg>
+
+Announcement
+
+</div>
+
+<h1>Username Notice</h1>
+
+<div class="username">@xinshijipay</div>
+
+</div>
+
+<div class="content">
+
+<div class="section">
+
+<h2>
+
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M12 20V4M4 12h16"/>
+</svg>
+
+中文
+
+</h2>
+
+<p>
+<strong>@xinshijipay</strong> 当前<strong>不出售</strong>，也没有任何出售计划。
+</p>
+
+<div class="linkbox">
+<a href="https://fragment.com/username/xinshijipay" target="_blank">
+https://fragment.com/username/xinshijipay
+</a>
+</div>
+
+<p>
+如果你有兴趣获取该用户名，请自行前往 Fragment 查看官方状态，无需再通过私信联系我。
+</p>
+
+</div>
+
+<hr>
+
+<div class="section">
+
+<h2>
+
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M5 12h14M12 5l7 7-7 7"/>
+</svg>
+
+English
+
+</h2>
+
+<p>
+<strong>@xinshijipay</strong> is <strong>not for sale</strong>, and there are no plans to sell this username.
+</p>
+
+<div class="linkbox">
+<a href="https://fragment.com/username/xinshijipay" target="_blank">
+https://fragment.com/username/xinshijipay
+</a>
+</div>
+
+<p>
+If you are interested in acquiring it, please check its availability on Fragment instead of contacting me privately.
+</p>
+
+</div>
+
+<div class="warning">
+
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M12 9v4"/>
+<path d="M12 17h.01"/>
+<path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/>
+</svg>
+
+<div>
+
+<strong>Notice</strong>
+
+<p style="margin-top:10px">
+自本公告发布之日起，任何关于购买该用户名的私信都将直接拉黑处理，不再回复，也不会进行任何讨论。
+<br><br>
+Effective immediately, any private message regarding the purchase of this username will be blocked without response or negotiation.
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="footer">
+
+<div class="time">
+Last Updated · 2026
+</div>
+
+<a class="button" href="https://fragment.com/username/xinshijipay" target="_blank">
+
+Visit Fragment
+
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M7 17L17 7"/>
+<path d="M8 7h9v9"/>
+</svg>
+
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+</body>
+</html>
