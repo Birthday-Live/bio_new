@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 · Page Not Found</title>
+
+<style>
+:root{
+    --text:#ffffff;
+    --sub:rgba(255,255,255,.75);
+    --border:rgba(255,255,255,.12);
+    --card:rgba(18,18,20,.45);
+    --button:rgba(255,255,255,.12);
+    --button-hover:rgba(255,255,255,.18);
+    --shadow:0 20px 60px rgba(0,0,0,.35);
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html,body{
+    width:100%;
+    height:100%;
+}
+
+body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+    color:var(--text);
+    background:url("https://chisato.org.cn/assets/background.jpg") center center / cover no-repeat fixed;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow:hidden;
+}
+
+body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.42);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+}
+
+.container{
+    position:relative;
+    width:min(760px,92%);
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:28px;
+    backdrop-filter:blur(28px);
+    -webkit-backdrop-filter:blur(28px);
+    box-shadow:var(--shadow);
+    padding:48px;
+    animation:fade .7s ease;
+}
+
+.status{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:var(--sub);
+    font-size:14px;
+    margin-bottom:18px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+}
+
+.status svg{
+    width:18px;
+    height:18px;
+}
+
+.error{
+    font-size:96px;
+    font-weight:700;
+    letter-spacing:-6px;
+    line-height:1;
+}
+
+.title{
+    margin-top:10px;
+    font-size:34px;
+    font-weight:600;
+}
+
+.desc{
+    margin-top:18px;
+    color:var(--sub);
+    line-height:1.8;
+    font-size:16px;
+}
+
+.info{
+    margin-top:38px;
+    border:1px solid var(--border);
+    border-radius:18px;
+    overflow:hidden;
+}
+
+.row{
+    display:flex;
+    justify-content:space-between;
+    padding:16px 20px;
+    border-bottom:1px solid var(--border);
+    gap:20px;
+}
+
+.row:last-child{
+    border-bottom:none;
+}
+
+.label{
+    color:var(--sub);
+}
+
+.value{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    text-align:right;
+    word-break:break-all;
+}
+
+.actions{
+    display:flex;
+    gap:14px;
+    margin-top:36px;
+    flex-wrap:wrap;
+}
+
+.button{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    text-decoration:none;
+    color:#fff;
+    background:var(--button);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:14px 22px;
+    transition:.25s;
+}
+
+.button:hover{
+    background:var(--button-hover);
+    transform:translateY(-2px);
+}
+
+.button svg{
+    width:18px;
+    height:18px;
+}
+
+.footer{
+    margin-top:40px;
+    color:var(--sub);
+    font-size:13px;
+    text-align:center;
+}
+
+@media(max-width:768px){
+
+.container{
+    padding:30px 22px;
+}
+
+.error{
+    font-size:72px;
+}
+
+.title{
+    font-size:26px;
+}
+
+.row{
+    flex-direction:column;
+    align-items:flex-start;
+}
+
+.value{
+    text-align:left;
+}
+
+}
+
+@keyframes fade{
+from{
+opacity:0;
+transform:translateY(20px);
+}
+to{
+opacity:1;
+transform:none;
+}
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="status">
+
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<circle cx="12" cy="12" r="9"/>
+<path d="M12 8v5"/>
+<circle cx="12" cy="16.5" r=".5" fill="currentColor" stroke="none"/>
+</svg>
+
+Error 404
+
+</div>
+
+<div class="error">404</div>
+
+<div class="title">Page Not Found</div>
+
+<div class="desc">
+The page you requested could not be found.<br>
+It may have been moved, deleted, or the URL may be incorrect.
+</div>
+
+<div class="info">
+
+<div class="row">
+<div class="label">Requested URL</div>
+<div class="value" id="url"></div>
+</div>
+
+<div class="row">
+<div class="label">Status</div>
+<div class="value">404 Not Found</div>
+</div>
+
+<div class="row">
+<div class="label">Host</div>
+<div class="value">chisato.org.cn</div>
+</div>
+
+</div>
+
+<div class="actions">
+
+<a class="button" href="/">
+
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M3 10.5L12 3l9 7.5"/>
+<path d="M5 9.5V21h14V9.5"/>
+</svg>
+
+Home
+
+</a>
+
+<a class="button" href="javascript:history.back()">
+
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M15 18l-6-6 6-6"/>
+</svg>
+
+Go Back
+
+</a>
+
+</div>
+
+<div class="footer">
+© 2026 chisato.org.cn · All Rights Reserved
+</div>
+
+</div>
+
+<script>
+document.getElementById("url").textContent =
+window.location.pathname +
+window.location.search +
+window.location.hash;
+</script>
+
+</body>
+</html>
