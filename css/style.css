@@ -684,3 +684,39 @@ h1 { font-size: 1.5rem; font-weight: 500; margin: 8px 0; letter-spacing: 0.2px; 
         border-radius: 0 0 12px 12px !important;
     }
 }
+/* ============================================================
+   页脚备案信息样式 — 完美适配 MD3 动态色彩
+   ============================================================ */
+.site-footer {
+    text-align: center;
+    padding: 24px 0;
+    margin-top: auto;
+    width: 100%;
+    z-index: 10;
+    position: relative;
+}
+
+.icp-link {
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    /* 使用你定义的 MD3 次要文字颜色变体 */
+    color: var(--md-sys-color-on-surface-variant); 
+    text-decoration: none;
+    opacity: 0.7;
+    transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* 悬浮时高亮为主色调，并微微放大，呼应你的卡片动画 */
+.icp-link:hover {
+    color: var(--md-sys-color-primary);
+    opacity: 1;
+    letter-spacing: 0.8px;
+}
+
+/* 移动端特殊避让：配合你原有的 body:not(.no-bg-controls) 逻辑 */
+@media (max-width: 480px) {
+    body:not(.no-bg-controls) .site-footer {
+        padding-bottom: 90px; /* 留出空间给底部的背景控制栏，防止重叠 */
+    }
+}
