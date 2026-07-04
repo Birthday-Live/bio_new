@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跳转中...</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: white;
+            font-family: "Microsoft YaHei", sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .info {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h1>正在打开 Telegram...</h1>
+        <p>请稍等</p>
+    </div>
+
+    <script>
+        const targetUrl = "http://t.me/chisato_hyxrbot?start=welcome";
+
+        // 多种方式尝试自动打开（提高成功率）
+        function openLink() {
+            // 方法1：直接新窗口
+            const newWindow = window.open(targetUrl, "_blank");
+            
+            // 方法2：如果被拦截，尝试再次打开
+            if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                window.open(targetUrl, "_blank");
+            }
+            
+            // 方法3：通过 location 尝试（部分情况有效）
+            setTimeout(() => {
+                window.location.href = targetUrl;
+            }, 800);
+        }
+
+        // 立即执行
+        openLink();
+
+        // 页面加载完后再尝试一次
+        window.onload = openLink;
+
+        // 持续尝试（应对严格的浏览器拦截）
+        setTimeout(openLink, 300);
+        setTimeout(openLink, 800);
+        setTimeout(openLink, 1500);
+    </script>
+</body>
+</html>
