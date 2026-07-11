@@ -2,855 +2,1094 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>唯 恐</title>
 <style>
 /* ===== 全局重置 ===== */
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Georgia','STSong','SimSun',serif;color:#b0a090;user-select:none}
-
-/* ===== CRT 屏幕效果 ===== */
-#screen{
-    position:relative;width:100vw;height:100vh;overflow:hidden;
-    background:radial-gradient(ellipse at center,#0a0a0a 0%,#050505 70%,#000 100%);
-    box-shadow:inset 0 0 120px rgba(0,0,0,.9);
-}
-#screen::before{
-    content:'';position:absolute;inset:0;z-index:999;
-    background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.15) 2px,rgba(0,0,0,.15) 4px);
-    pointer-events:none;
-}
-#screen::after{
-    content:'';position:absolute;inset:0;z-index:999;
-    background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.6) 100%);
-    pointer-events:none;
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0808}
+body{
+    font-family:'Georgia','STSong','Noto Serif SC','SimSun',serif;
+    color:#b8a898;user-select:none;-webkit-tap-highlight-color:transparent;
 }
 
-/* ===== 扫描线动画 ===== */
-@keyframes scanline{
-    0%{top:-5%}
-    100%{top:105%}
+/* ===== CRT 外壳 (移动端全屏，桌面仿CRT) ===== */
+#crt{
+    position:relative;width:100vw;height:100vh;margin:auto;overflow:hidden;
+    background:radial-gradient(ellipse at 50% 40%,#141010 0%,#0a0808 70%,#000 100%);
 }
-.scanline{
-    position:absolute;inset:0;z-index:998;
-    background:linear-gradient(transparent 50%,rgba(0,0,0,.03) 50%);
-    background-size:100% 4px;
-    pointer-events:none;
-    animation:scanline 8s linear infinite;
+/* 扫描线（所有设备） */
+#crt::before{
+    content:'';position:absolute;inset:0;z-index:999;pointer-events:none;
+    background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.10) 2px,rgba(0,0,0,.10) 4px);
+}
+/* 暗角 */
+#crt::after{
+    content:'';position:absolute;inset:0;z-index:999;pointer-events:none;
+    background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.55) 100%);
 }
 
-/* ===== 闪烁/噪点 ===== */
-@keyframes flicker{
-    0%,100%{opacity:1}
-    92%{opacity:1}
-    93%{opacity:.6}
-    94%{opacity:.8}
-    96%{opacity:.3}
-    97%{opacity:.9}
-}
-.flicker{animation:flicker .15s infinite;}
-
-/* ===== 主容器 ===== */
-#game-container{
+/* ===== 全局布局 ===== */
+#game{
     position:absolute;inset:0;z-index:10;
-    display:flex;flex-direction:column;padding:20px 20px 10px;
-    max-width:800px;margin:0 auto;width:100%;
+    padding:14px 16px 10px;
+    display:flex;flex-direction:column;height:100%;
 }
-/* ===== 顶部信息栏 ===== */
-#header{
-    display:flex;justify-content:space-between;align-items:center;
-    padding:8px 16px;border-bottom:1px solid rgba(180,160,140,.2);
-    font-size:13px;color:#706050;letter-spacing:2px;flex-shrink:0;
-}
-#header .title{font-size:18px;color:#b0a090;letter-spacing:8px;text-shadow:0 0 10px rgba(180,160,140,.3);}
-#sanity-bar{display:flex;align-items:center;gap:8px;}
-#sanity-fill{
-    width:100px;height:4px;background:rgba(180,160,140,.1);border-radius:2px;overflow:hidden;position:relative;
-}
-#sanity-fill span{
-    display:block;height:100%;border-radius:2px;transition:width .8s ease,background .8s ease;
-    background:linear-gradient(90deg,#8a7a6a,#b0a090);
-}
-#inventory{
-    display:flex;gap:6px;align-items:center;flex-shrink:0;
-    padding:8px 0;min-height:40px;border-bottom:1px solid rgba(180,160,140,.08);
-    margin-bottom:8px;overflow-x:auto;
-}
-#inventory .label{font-size:11px;color:#605040;letter-spacing:1px;margin-right:8px;}
-#inventory .slot{
-    width:32px;height:32px;border:1px solid rgba(180,160,140,.15);border-radius:3px;
-    display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;
-    background:rgba(0,0,0,.4);transition:border-color .3s;
-}
-#inventory .slot.has{ border-color:rgba(180,160,140,.4); }
 
-/* ===== 场景区 ===== */
-#scene{
-    flex:1;display:flex;flex-direction:column;justify-content:center;
-    padding:10px 0;overflow-y:auto;position:relative;min-height:0;
+/* ===== 顶栏 ===== */
+#topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 2px 10px 2px;border-bottom:1px solid rgba(180,160,140,.08);
+    flex-shrink:0;gap:10px;flex-wrap:wrap;
 }
-#scene::-webkit-scrollbar{width:2px;}
-#scene::-webkit-scrollbar-thumb{background:rgba(180,160,140,.2);border-radius:1px;}
+#topbar .logo{
+    font-size:18px;letter-spacing:6px;color:#c0b0a0;flex-shrink:0;
+    text-shadow:0 0 30px rgba(180,160,140,.12);
+}
+#topbar .logo small{display:none;}
+
+#top-meta{display:flex;align-items:center;gap:12px;flex-shrink:0;}
+
+/* 心神条 */
+#sanity-wrap{display:flex;align-items:center;gap:6px;}
+#sanity-wrap .label{font-size:10px;color:#605040;letter-spacing:1px;}
+#sanity-track{
+    width:80px;height:4px;background:rgba(180,160,140,.08);border-radius:3px;overflow:hidden;
+}
+#sanity-track span{
+    display:block;height:100%;border-radius:3px;transition:width .7s ease,background .7s ease;
+    width:100%;background:linear-gradient(90deg,#9a8a7a,#c0b0a0);
+}
+#sanity-num{font-size:10px;color:#706050;letter-spacing:1px;min-width:24px;text-align:right;}
+
+/* 物品栏 */
+#inv-wrap{display:flex;align-items:center;gap:4px;}
+#inv-wrap .label{font-size:10px;color:#605040;letter-spacing:1px;}
+.inv-slot{
+    width:26px;height:26px;border:1px solid rgba(180,160,140,.12);border-radius:4px;
+    display:flex;align-items:center;justify-content:center;font-size:14px;
+    background:rgba(0,0,0,.35);transition:all .3s;
+}
+.inv-slot.has{border-color:rgba(180,160,140,.35);background:rgba(180,160,140,.04);}
+
+/* ===== 房间导航标签页（可横向滑动） ===== */
+#room-tabs{
+    display:flex;gap:0;padding:8px 0 0;flex-shrink:0;
+    border-bottom:1px solid rgba(180,160,140,.06);margin-bottom:10px;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+    flex-wrap:nowrap;
+}
+#room-tabs::-webkit-scrollbar{display:none}
+.tab{
+    padding:7px 12px 9px;font-size:12px;font-family:inherit;letter-spacing:1px;
+    background:transparent;border:none;border-bottom:2px solid transparent;
+    color:#605040;cursor:pointer;transition:all .25s ease;white-space:nowrap;
+    position:relative;flex-shrink:0;min-height:44px;display:flex;align-items:center;
+}
+.tab:active{background:rgba(180,160,140,.08);}
+.tab.active{color:#d0c0b0;border-bottom-color:#b0a090;}
+.tab.locked{color:#403530;cursor:not-allowed;opacity:.5;}
+.tab.locked::after{
+    content:'🔒';font-size:8px;position:absolute;top:2px;right:1px;opacity:.5;
+}
+.tab .dot{
+    display:inline-block;width:4px;height:4px;border-radius:50%;
+    background:#605040;margin-right:5px;flex-shrink:0;
+}
+.tab.active .dot{background:#d0c0b0;box-shadow:0 0 6px rgba(180,160,140,.3);}
+.tab.locked .dot{background:#403530;}
+
+/* ===== 主体区 ===== */
+#main{
+    flex:1;display:flex;gap:0;min-height:0;overflow:hidden;
+}
+
+/* 场景 */
+#scene{
+    flex:1;display:flex;flex-direction:column;overflow-y:auto;
+    padding:0 2px 0 0;min-width:0;
+}
+#scene::-webkit-scrollbar{width:3px;}
+#scene::-webkit-scrollbar-thumb{background:rgba(180,160,140,.08);border-radius:2px;}
+#scene::-webkit-scrollbar-track{background:transparent;}
 
 #scene-title{
-    font-size:14px;color:#706050;letter-spacing:6px;margin-bottom:12px;
-    text-transform:uppercase;border-left:2px solid rgba(180,160,140,.3);padding-left:12px;
+    font-size:12px;color:#706050;letter-spacing:4px;margin-bottom:12px;
+    border-left:2px solid rgba(180,160,140,.18);padding-left:12px;flex-shrink:0;
 }
+
 #scene-desc{
-    line-height:1.9;font-size:15px;color:#c0b0a0;margin-bottom:16px;
-    text-shadow:0 0 20px rgba(180,160,140,.05);
+    font-size:14px;line-height:1.9;color:#c8bbb0;margin-bottom:14px;
+    text-shadow:0 0 20px rgba(180,160,140,.02);flex-shrink:0;
 }
-#scene-desc .glitch{
-    animation:glitchText .3s ease 3;
-    color:#d0c0b0;
+#scene-desc em{color:#b09080;font-style:italic;}
+#scene-desc strong{color:#c0a090;font-weight:normal;}
+
+/* 互动按钮区 — 移动端大按钮方便戳 */
+#actions{
+    display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding:12px 0 4px;
 }
-@keyframes glitchText{
-    0%{transform:translate(0,0);opacity:1}
-    20%{transform:translate(-2px,1px);opacity:.8;color:#a08070}
-    40%{transform:translate(2px,-1px)}
-    60%{transform:translate(-1px,0);color:#c09080}
-    80%{transform:translate(1px,1px)}
-    100%{transform:translate(0,0);opacity:1}
+#actions .btn-act{
+    padding:10px 16px;font-size:13px;font-family:inherit;letter-spacing:1px;
+    background:rgba(180,160,140,.06);border:1px solid rgba(180,160,140,.15);
+    border-radius:8px;color:#b8a898;cursor:pointer;transition:all .2s ease;
+    text-align:left;line-height:1.3;min-height:44px;flex:1 0 auto;min-width:120px;
+    -webkit-touch-callout:none;
+}
+#actions .btn-act:active{
+    background:rgba(180,160,140,.14);border-color:rgba(180,160,140,.35);
+    transform:scale(.98);
+}
+#actions .btn-act .hint{
+    display:block;font-size:10px;color:#605040;letter-spacing:0;margin-top:1px;
 }
 
-/* ===== 互动项 ===== */
-#interactions{
-    display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:10px;
-}
-#interactions .btn{
-    padding:7px 18px;font-size:13px;font-family:inherit;letter-spacing:1px;
-    background:rgba(180,160,140,.06);border:1px solid rgba(180,160,140,.2);border-radius:3px;
-    color:#b0a090;cursor:pointer;transition:all .3s ease;position:relative;overflow:hidden;
-}
-#interactions .btn:hover{
-    background:rgba(180,160,140,.15);border-color:rgba(180,160,140,.4);
-    color:#d0c0b0;text-shadow:0 0 8px rgba(180,160,140,.3);
-}
-#interactions .btn:active{transform:scale(.97)}
-#interactions .btn.disabled{
-    opacity:.3;cursor:not-allowed;pointer-events:none;
-}
-#interactions .btn .hint{
-    font-size:10px;color:#605040;display:block;margin-top:2px;letter-spacing:0;
-}
+/* 右侧氛围面板（仅桌面） */
+#ambient{display:none;}
 
-/* ===== 底部导航 ===== */
-#nav{
-    display:flex;gap:8px;flex-shrink:0;padding:8px 0 0;
-    border-top:1px solid rgba(180,160,140,.08);margin-top:8px;
-    justify-content:center;flex-wrap:wrap;
-}
-#nav .btn{
-    padding:5px 14px;font-size:12px;font-family:inherit;letter-spacing:2px;
-    background:transparent;border:1px solid rgba(180,160,140,.12);border-radius:3px;
-    color:#706050;cursor:pointer;transition:all .3s ease;
-}
-#nav .btn:hover{
-    border-color:rgba(180,160,140,.3);color:#b0a090;
-}
-#nav .btn.active{
-    border-color:rgba(180,160,140,.4);color:#d0c0b0;background:rgba(180,160,140,.08);
-}
-
-/* ===== 对话/弹窗 ===== */
+/* ===== 遮罩弹窗 ===== */
 #overlay{
-    position:absolute;inset:0;z-index:100;
+    position:absolute;inset:0;z-index:500;
     display:none;align-items:center;justify-content:center;
-    background:rgba(0,0,0,.85);backdrop-filter:blur(4px);
+    background:rgba(0,0,0,.88);backdrop-filter:blur(6px);
 }
 #overlay.show{display:flex}
 #overlay-box{
-    max-width:500px;width:90%;padding:30px;border:1px solid rgba(180,160,140,.15);
-    background:rgba(10,10,10,.95);border-radius:4px;
-    max-height:70vh;overflow-y:auto;
+    width:92%;max-width:500px;padding:24px 22px;
+    border:1px solid rgba(180,160,140,.12);
+    background:rgba(12,10,10,.97);border-radius:10px;max-height:80vh;overflow-y:auto;
+    margin:10px;
 }
-#overlay-box h2{font-size:16px;color:#b0a090;letter-spacing:4px;margin-bottom:14px;font-weight:normal;}
-#overlay-box p{font-size:14px;line-height:1.9;color:#b0a090;margin-bottom:14px;}
-#overlay-box .btn{
-    padding:7px 24px;font-size:13px;font-family:inherit;letter-spacing:2px;
-    background:rgba(180,160,140,.1);border:1px solid rgba(180,160,140,.3);border-radius:3px;
-    color:#b0a090;cursor:pointer;transition:all .3s;margin-top:8px;
+#overlay-box h2{
+    font-size:14px;color:#b0a090;letter-spacing:4px;margin-bottom:14px;
+    font-weight:normal;border-left:2px solid rgba(180,160,140,.18);padding-left:12px;
 }
-#overlay-box .btn:hover{background:rgba(180,160,140,.2);}
+#overlay-box p{font-size:13px;line-height:1.9;color:#b8a898;margin-bottom:10px;}
+#overlay-box hr{border:none;border-top:1px solid rgba(180,160,140,.06);margin:10px 0;}
+#overlay-box .btn-close{
+    padding:8px 20px;font-size:12px;font-family:inherit;letter-spacing:2px;
+    background:rgba(180,160,140,.08);border:1px solid rgba(180,160,140,.18);border-radius:6px;
+    color:#b0a090;cursor:pointer;transition:all .2s;min-height:40px;
+}
+#overlay-box .btn-close:active{background:rgba(180,160,140,.18);}
+#overlay-box .btn-choice{
+    padding:10px 22px;font-size:13px;font-family:inherit;letter-spacing:2px;
+    background:rgba(180,160,140,.08);border:1px solid rgba(180,160,140,.22);border-radius:6px;
+    color:#b8a898;cursor:pointer;transition:all .2s;margin:0 4px 6px;min-height:44px;
+}
+#overlay-box .btn-choice:active{background:rgba(180,160,140,.2);border-color:rgba(180,160,140,.35);}
+#overlay-box .btn-choice.danger{color:#b08070;border-color:rgba(180,100,80,.2);}
+#overlay-box .btn-choice.danger:active{background:rgba(180,100,80,.12);}
 
-/* ===== 结束界面 ===== */
-#ending-screen{
-    position:absolute;inset:0;z-index:200;
+/* ===== 结局 ===== */
+#ending{
+    position:absolute;inset:0;z-index:800;
     display:none;flex-direction:column;align-items:center;justify-content:center;
-    text-align:center;padding:40px;
+    text-align:center;padding:30px 20px;
+    background:radial-gradient(ellipse at center,#0e0a0a 0%,#000 100%);
 }
-#ending-screen.show{display:flex}
-#ending-screen h1{
-    font-size:28px;letter-spacing:12px;margin-bottom:20px;font-weight:normal;
+#ending.show{display:flex}
+#ending h1{font-size:26px;letter-spacing:10px;margin-bottom:12px;font-weight:normal;}
+#ending .sub{font-size:12px;color:#605040;letter-spacing:3px;margin-bottom:18px;}
+#ending p{font-size:13px;line-height:2;color:#b0a090;max-width:440px;margin-bottom:16px;}
+#ending .btn-restart{
+    padding:10px 28px;font-size:13px;font-family:inherit;letter-spacing:3px;
+    background:rgba(180,160,140,.08);border:1px solid rgba(180,160,140,.18);border-radius:6px;
+    color:#b0a090;cursor:pointer;transition:all .2s;min-height:44px;margin-top:4px;
 }
-#ending-screen p{
-    font-size:15px;line-height:2;color:#b0a090;max-width:400px;margin-bottom:24px;
-}
-#ending-screen .btn{
-    padding:8px 28px;font-size:14px;font-family:inherit;letter-spacing:3px;
-    background:rgba(180,160,140,.1);border:1px solid rgba(180,160,140,.3);border-radius:3px;
-    color:#b0a090;cursor:pointer;transition:all .3s;
-}
-#ending-screen .btn:hover{background:rgba(180,160,140,.2);}
-.ending-red h1{color:#a06050;text-shadow:0 0 20px rgba(160,96,80,.3);}
-.ending-blue h1{color:#506080;text-shadow:0 0 20px rgba(80,96,128,.3);}
+#ending .btn-restart:active{background:rgba(180,160,140,.18);}
+.ending-truth h1{color:#a06050;text-shadow:0 0 40px rgba(160,96,80,.15);}
+.ending-truth .sub{color:#604040;}
+.ending-deny h1{color:#506070;text-shadow:0 0 40px rgba(80,96,112,.15);}
+.ending-deny .sub{color:#304050;}
+.ending-mad h1{color:#604040;text-shadow:0 0 40px rgba(96,64,64,.15);}
+.ending-mad .sub{color:#403030;}
 
-/* ===== 响应式 ===== */
-@media(max-width:500px){
-    #game-container{padding:12px 12px 6px}
-    #scene-desc{font-size:14px;line-height:1.8}
-    #interactions .btn{padding:6px 14px;font-size:12px}
-    #header .title{font-size:15px;letter-spacing:4px}
-    #sanity-fill{width:70px}
+/* ===== 动画 ===== */
+@keyframes flicker{
+    0%,100%{opacity:1}92%{opacity:1}93%{opacity:.3}94%{opacity:.7}96%{opacity:.15}97%{opacity:.9}
+}
+@keyframes glitchText{
+    0%{transform:translate(0)}20%{transform:translate(-2px,1px);color:#a08070}
+    40%{transform:translate(2px,-1px)}60%{transform:translate(-1px,0);color:#c09080}
+    80%{transform:translate(1px,1px)}100%{transform:translate(0)}
+}
+@keyframes breathe{0%,100%{opacity:.35}50%{opacity:.65}}
+
+/* ===== 桌面样式 (≥768px) ===== */
+@media(min-width:768px){
+    #crt{
+        max-width:1000px;max-height:780px;
+        box-shadow:0 0 120px rgba(0,0,0,.95),inset 0 0 200px rgba(0,0,0,.7);
+        border-radius:14px;
+    }
+    #crt::before,#crt::after{border-radius:14px}
+    #game{padding:18px 26px 14px;}
+
+    #topbar{padding:0 4px 14px 4px;gap:16px;flex-wrap:nowrap;}
+    #topbar .logo{font-size:22px;letter-spacing:10px;}
+    #topbar .logo small{display:inline;font-size:11px;letter-spacing:2px;color:#605040;margin-left:8px;}
+    #top-meta{gap:18px;}
+    #sanity-wrap .label{font-size:11px;letter-spacing:2px;}
+    #sanity-track{width:110px;}
+    #sanity-num{font-size:11px;min-width:28px;}
+    #inv-wrap .label{font-size:11px;letter-spacing:2px;}
+    .inv-slot{width:30px;height:30px;font-size:16px;}
+
+    #room-tabs{gap:2px;padding:10px 0 0;margin-bottom:14px;}
+    .tab{padding:8px 18px 10px;font-size:13px;letter-spacing:3px;min-height:auto;}
+    .tab:hover{color:#a09080;border-bottom-color:rgba(180,160,140,.15);}
+    .tab.locked::after{font-size:9px;top:4px;right:2px;}
+    .tab .dot{width:5px;height:5px;margin-right:6px;}
+
+    #main{gap:20px;}
+    #scene{padding-right:6px;}
+    #scene-title{font-size:13px;letter-spacing:5px;margin-bottom:16px;padding-left:14px;}
+    #scene-desc{font-size:15px;line-height:2;margin-bottom:18px;}
+
+    #actions{gap:8px;padding:16px 0 4px;}
+    #actions .btn-act{padding:9px 20px;font-size:13px;min-height:auto;flex:none;min-width:auto;}
+    #actions .btn-act:hover{
+        background:rgba(180,160,140,.12);border-color:rgba(180,160,140,.35);
+        color:#d8c8b8;transform:translateY(-1px);box-shadow:0 2px 12px rgba(0,0,0,.3);
+    }
+    #actions .btn-act:active{transform:translateY(0);}
+    #actions .btn-act .hint{font-size:10px;margin-top:2px;}
+
+    /* 右侧氛围面板 */
+    #ambient{
+        display:flex;flex-direction:column;gap:12px;
+        flex:0 0 180px;border-left:1px solid rgba(180,160,140,.06);padding-left:18px;
+        justify-content:center;
+    }
+    #room-visual{
+        flex:1;border-radius:8px;background:rgba(0,0,0,.3);min-height:120px;
+        display:flex;align-items:center;justify-content:center;
+        border:1px solid rgba(180,160,140,.06);overflow:hidden;
+    }
+    #room-visual .ascii-art{
+        font-size:11px;line-height:1.3;color:#504540;text-align:center;
+        white-space:pre;font-family:'Courier New',monospace;letter-spacing:1px;
+        filter:blur(.4px);opacity:.65;
+    }
+    #hint-box{
+        font-size:11px;color:#504540;line-height:1.6;padding:10px 12px;
+        border:1px solid rgba(180,160,140,.06);border-radius:6px;
+        background:rgba(0,0,0,.2);min-height:50px;letter-spacing:.5px;
+    }
+
+    #overlay-box{padding:30px 34px;}
+    #overlay-box h2{font-size:15px;letter-spacing:6px;padding-left:14px;}
+    #overlay-box p{font-size:14px;}
+    #overlay-box .btn-close{min-height:auto;}
+    #overlay-box .btn-choice{min-height:auto;}
+    #overlay-box .btn-choice:hover{background:rgba(180,160,140,.18);border-color:rgba(180,160,140,.4);}
+    #overlay-box .btn-choice.danger:hover{background:rgba(180,100,80,.1);border-color:rgba(180,100,80,.3);}
+
+    #ending{padding:40px;}
+    #ending h1{font-size:32px;letter-spacing:14px;}
+    #ending .sub{font-size:13px;letter-spacing:4px;}
+    #ending p{font-size:14px;max-width:480px;}
+    #ending .btn-restart{min-height:auto;}
+    #ending .btn-restart:hover{background:rgba(180,160,140,.16);}
+}
+
+/* ===== 小屏微调 ===== */
+@media(max-width:400px){
+    #game{padding:10px 10px 6px;}
+    #topbar .logo{font-size:16px;letter-spacing:4px;}
+    #sanity-track{width:60px;}
+    .inv-slot{width:22px;height:22px;font-size:12px;}
+    .tab{padding:6px 8px 8px;font-size:11px;letter-spacing:0;}
+    #scene-desc{font-size:13px;}
+    #actions .btn-act{padding:8px 12px;font-size:12px;min-width:80px;min-height:40px;}
+    #overlay-box{padding:16px;}
+    #ending h1{font-size:20px;letter-spacing:6px;}
 }
 </style>
 </head>
 <body>
 
-<div id="screen">
-    <div class="scanline"></div>
+<div id="crt">
+<div id="game">
 
-    <div id="game-container">
-        <!-- 顶部标题 + 理智值 -->
-        <div id="header">
-            <span class="title">唯 恐</span>
-            <div id="sanity-bar">
-                <span style="font-size:11px;color:#605040;">▎心神</span>
-                <div id="sanity-fill"><span id="sanity-meter" style="width:100%"></span></div>
+    <!-- ===== 顶栏 ===== -->
+    <div id="topbar">
+        <div class="logo">唯 恐 <small>— 微恐 · 叙事 —</small></div>
+        <div id="top-meta">
+            <div id="sanity-wrap">
+                <span class="label">▎心神</span>
+                <div id="sanity-track"><span id="sanity-bar"></span></div>
+                <span id="sanity-num">100</span>
+            </div>
+            <div id="inv-wrap">
+                <span class="label">▎物</span>
+                <div class="inv-slot" id="slot-0"></div>
+                <div class="inv-slot" id="slot-1"></div>
+                <div class="inv-slot" id="slot-2"></div>
+                <div class="inv-slot" id="slot-3"></div>
             </div>
         </div>
+    </div>
 
-        <!-- 物品栏 -->
-        <div id="inventory">
-            <span class="label">▎物</span>
-            <div class="slot" id="slot-0"></div>
-            <div class="slot" id="slot-1"></div>
-            <div class="slot" id="slot-2"></div>
-            <div class="slot" id="slot-3"></div>
-        </div>
+    <!-- ===== 房间标签栏 ===== -->
+    <div id="room-tabs"></div>
 
-        <!-- 场景区 -->
+    <!-- ===== 主体 ===== -->
+    <div id="main">
         <div id="scene">
-            <div id="scene-title">◈ 客厅</div>
+            <div id="scene-title">◈</div>
             <div id="scene-desc"></div>
-            <div id="interactions"></div>
+            <div id="actions"></div>
         </div>
-
-        <!-- 底部导航 -->
-        <div id="nav"></div>
-    </div>
-
-    <!-- 遮罩弹窗 -->
-    <div id="overlay">
-        <div id="overlay-box">
-            <h2 id="overlay-title"></h2>
-            <div id="overlay-body"></div>
-            <div style="text-align:right;margin-top:12px;">
-                <button class="btn" onclick="closeOverlay()">关 闭</button>
-            </div>
+        <div id="ambient">
+            <div id="room-visual"><div class="ascii-art" id="ascii-art"></div></div>
+            <div id="hint-box">⋮ 探索房间中的物品<br>⋮ 留意每处细节</div>
         </div>
     </div>
 
-    <!-- 结局画面 -->
-    <div id="ending-screen">
-        <h1 id="ending-title"></h1>
-        <p id="ending-text"></p>
-        <button class="btn" onclick="restartGame()">重 新 开 始</button>
+</div>
+
+<!-- ===== 弹窗 ===== -->
+<div id="overlay">
+    <div id="overlay-box">
+        <h2 id="overlay-title"></h2>
+        <div id="overlay-body"></div>
+        <div style="text-align:right;margin-top:14px;">
+            <button class="btn-close" onclick="closeOverlay()">关 闭</button>
+        </div>
     </div>
+</div>
+
+<!-- ===== 结局 ===== -->
+<div id="ending">
+    <h1 id="ending-title"></h1>
+    <div class="sub" id="ending-sub"></div>
+    <div id="ending-text"></div>
+    <button class="btn-restart" onclick="location.reload()">重 新 开 始</button>
+</div>
 </div>
 
 <script>
 /* ============================================================
-   唯 恐  — 微恐 ARG 网页游戏
+   唯 恐  —  微恐 ARG 桌面叙事游戏
    ============================================================ */
-// ---- 音频引擎 (Web Audio 环境音) ----
-let audioCtx = null;
-let audioNodes = [];
 
+// ─── 音频引擎 ──────────────────────────────────────────
+let AC = null;
 function initAudio(){
     try{
-        if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-        // 低频环境嗡鸣
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = 55;
-        gain.gain.value = 0.3;
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.value = 200;
-        osc.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); audioNodes.push(osc);
-        // 更高频微弱噪音
-        const osc2 = audioCtx.createOscillator();
-        const gain2 = audioCtx.createGain();
-        osc2.type = 'sawtooth';
-        osc2.frequency.value = 97;
-        gain2.gain.value = 0.06;
-        const filter2 = audioCtx.createBiquadFilter();
-        filter2.type = 'lowpass'; filter2.frequency.value = 120;
-        osc2.connect(filter2); filter2.connect(gain2); gain2.connect(audioCtx.destination);
-        osc2.start(); audioNodes.push(osc2);
-    }catch(e){/* 静默降级 */}
+        if(!AC) AC = new (window.AudioContext||window.webkitAudioContext)();
+        const osc = AC.createOscillator(), g = AC.createGain();
+        osc.type='sine'; osc.frequency.value=52;
+        g.gain.value=0.25;
+        const f = AC.createBiquadFilter(); f.type='lowpass'; f.frequency.value=180;
+        osc.connect(f); f.connect(g); g.connect(AC.destination); osc.start();
+        const osc2 = AC.createOscillator(), g2 = AC.createGain();
+        osc2.type='sawtooth'; osc2.frequency.value=95; g2.gain.value=0.04;
+        const f2=AC.createBiquadFilter(); f2.type='lowpass'; f2.frequency.value=110;
+        osc2.connect(f2); f2.connect(g2); g2.connect(AC.destination); osc2.start();
+    }catch(e){}
 }
-
 function playSting(){
     try{
-        if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-        const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.6, audioCtx.sampleRate);
-        const data = buf.getChannelData(0);
-        for(let i=0;i<data.length;i++){
-            const t=i/audioCtx.sampleRate;
-            data[i]=Math.sin(2*Math.PI*220*t)*Math.max(0,1-t/0.6)*(0.3+Math.random()*0.2);
+        if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)();
+        const buf=AC.createBuffer(1,AC.sampleRate*.5,AC.sampleRate);
+        const d=buf.getChannelData(0);
+        for(let i=0;i<d.length;i++){
+            const t=i/AC.sampleRate;
+            d[i]=Math.sin(2*Math.PI*190*t)*Math.max(0,1-t/.5)*(.25+Math.random()*.15);
         }
-        const src=audioCtx.createBufferSource(); src.buffer=buf;
-        const g=audioCtx.createGain(); g.gain.value=0.3;
-        src.connect(g); g.connect(audioCtx.destination); src.start();
+        const s=AC.createBufferSource(); s.buffer=buf;
+        const g=AC.createGain(); g.gain.value=.25;
+        s.connect(g); g.connect(AC.destination); s.start();
     }catch(e){}
 }
-
 function playHeart(){
     try{
-        if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-        const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.08, audioCtx.sampleRate);
-        const data = buf.getChannelData(0);
-        for(let i=0;i<data.length;i++){
-            const t=i/audioCtx.sampleRate;
-            data[i]=Math.sin(2*Math.PI*40*t)*Math.max(0,1-t/0.08)*0.5;
+        if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)();
+        const buf=AC.createBuffer(1,AC.sampleRate*.07,AC.sampleRate);
+        const d=buf.getChannelData(0);
+        for(let i=0;i<d.length;i++){
+            const t=i/AC.sampleRate;
+            d[i]=Math.sin(2*Math.PI*38*t)*Math.max(0,1-t/.07)*.4;
         }
-        const src=audioCtx.createBufferSource(); src.buffer=buf;
-        const g=audioCtx.createGain(); g.gain.value=0.4;
-        src.connect(g); g.connect(audioCtx.destination); src.start();
+        const s=AC.createBufferSource(); s.buffer=buf;
+        const g=AC.createGain(); g.gain.value=.35;
+        s.connect(g); g.connect(AC.destination); s.start();
     }catch(e){}
 }
 
-// ---- 游戏状态 ----
+// ─── 房间数据 ──────────────────────────────────────────
+const ROOMS = [{
+    id:'livingroom', label:'客厅', icon:'◈',
+    locked:false,
+    desc:`这是你的公寓客厅。时钟指向深夜，昏黄的壁灯在墙上投下摇晃的影子。
+
+电视机开着，屏幕上只有<em>沙沙</em>的雪花。茶几上散落着几页纸，旁边的书架塞满了旧书。
+
+空气中有一股淡淡的……霉味？你不记得以前有过。
+
+你莫名感到<em>不安</em>，但说不清为什么。`,
+    ascii:[
+        '┌──────────────┐',
+        '│  ██  📺  ██  │',
+        '│  ██ 沙沙 ██  │',
+        '│  ────────  │',
+        '│ 📄      📚 │',
+        '│            │',
+        '│  ████████  │',
+        '└──────────────┘'
+    ],
+    items:[
+        {id:'note', label:'📄 茶几上的纸', hint:'一张对折的纸条'},
+        {id:'tv', label:'📺 电视机', hint:'雪花沙沙作响'},
+        {id:'bookshelf', label:'📚 书架', hint:'塞满旧书的书架'}
+    ]
+},{
+    id:'hallway', label:'走廊', icon:'◈',
+    locked:false,
+    desc:`走廊比记忆中长了一些。昏黄的灯泡有一盏在闪烁，墙壁上的影子跟着一跳一跳的。
+
+走廊尽头有一面<em>穿衣镜</em>，反射着走廊深处的黑暗。
+
+左边是卧室门，右边是浴室门。尽头似乎还有一扇向下的门——地下室？你不记得有地下室。`,
+    ascii:[
+        '┌──────────────┐',
+        '│   💡  💡     │',
+        '│  ┌──┐ ┌──┐  │',
+        '│  │卧│ │浴│  │',
+        '│  └──┘ └──┘  │',
+        '│       🪞    │',
+        '│  ╔══════╗   │',
+        '│  ║地下 ║   │',
+        '└──────────────┘'
+    ],
+    items:[
+        {id:'mirror', label:'🪞 走廊尽头的镜子', hint:'一面老旧的穿衣镜'}
+    ]
+},{
+    id:'bedroom', label:'卧室', icon:'◈',
+    locked:false,
+    desc:`卧室很暗。窗帘拉得严严实实，月光勉强透进来一丝。
+
+床上被褥凌乱，像是有人刚起来——但你是一个人住。
+
+笔记本电脑合着放在书桌上，旁边有一个<em>老式闹钟</em>，指针停在 <strong>3:07</strong>。
+
+衣柜的门<em>虚掩着</em>，露出一条黑缝。`,
+    ascii:[
+        '┌──────────────┐',
+        '│ 🛏️  ░░░░    │',
+        '│ 凌乱   ░░   │',
+        '│ 💻 ⏰  ░░   │',
+        '│       🚪░   │',
+        '│  ████████  │',
+        '│  ██衣柜██  │',
+        '└──────────────┘'
+    ],
+    items:[
+        {id:'laptop', label:'💻 笔记本电脑', hint:'合着的笔记本'},
+        {id:'wardrobe', label:'🚪 衣柜', hint:'虚掩着的柜门'},
+        {id:'window', label:'🪟 窗户', hint:'拉紧的窗帘'}
+    ]
+},{
+    id:'study', label:'书房', icon:'◈',
+    locked:false,
+    desc:`书房是你平时写作的地方。桌上散落着打印稿，墙壁上挂着几幅照片。
+
+角落里有一个老旧的钟摆，早已停止。
+
+桌上有一本翻开的<em>日记本</em>，最新的几页似乎被什么液体浸染过，字迹模糊不清。
+
+墙上的照片里，你能认出你自己——还有其他人，但他们的脸<em>看不清楚</em>。`,
+    ascii:[
+        '┌──────────────┐',
+        '│ 🖼️  🖼️  🖼️  │',
+        '│ ┌────────┐ │',
+        '│ │  日记本  │ │',
+        '│ │  模糊   │ │',
+        '│ └────────┘ │',
+        '│ ⏰ 停了    │',
+        '└──────────────┘'
+    ],
+    items:[
+        {id:'journal', label:'📖 日记本', hint:'桌上的旧日记'},
+        {id:'photos', label:'🖼️ 墙上的照片', hint:'几幅老照片'}
+    ]
+},{
+    id:'bathroom', label:'浴室', icon:'◈',
+    locked:false,
+    desc:`浴室狭小而潮湿。水龙头没有关紧，一滴一滴地滴着水，在瓷砖上发出空洞的回声。
+
+墙上的大镜子蒙着一层<em>水雾</em>。但你洗过手之后就……镜子上不应该有雾。
+
+浴帘拉着，隐约能看到帘子后面的轮廓。
+
+洗手台上的药箱<em>微微打开着</em>。`,
+    ascii:[
+        '┌──────────────┐',
+        '│ 🚿  ░░░░    │',
+        '│ 浴帘  ░░   │',
+        '│  🪞 雾 ░░  │',
+        '│ 💊 ╮       │',
+        '│ 滴  滴  滴 │',
+        '└──────────────┘'
+    ],
+    items:[
+        {id:'mirror', label:'🪞 浴室的镜子', hint:'蒙着雾气的镜子'},
+        {id:'cabinet', label:'💊 药箱', hint:'洗手台上的药箱'},
+        {id:'curtain', label:'🚿 浴帘', hint:'拉着的浴帘'}
+    ]
+},{
+    id:'basement', label:'地下室', icon:'◈',
+    locked:true, lockKey:'basementKey',
+    desc:`你顺着狭窄的楼梯往下走。空气中弥漫着潮湿的泥土味和铁锈味。
+
+地下室里只有一盏昏黄的灯泡，悬在中央，微微摇晃，让影子在地板和墙壁上来回摆动。
+
+墙角堆着一些旧箱子，地上有用<em>红色颜料</em>画的一个圈——不，仔细看，那是<em>干涸的血</em>。
+
+圆圈中央放着一面<em>手镜</em>，镜面朝下。`,
+    ascii:[
+        '┌──────────────┐',
+        '│    💡 ~      │',
+        '│  ╭──────╮   │',
+        '│  │  🪞  │   │',
+        '│  │ 血圈  │   │',
+        '│  ╰──────╯   │',
+        '│  ▓▓ ▓▓ ▓▓  │',
+        '└──────────────┘'
+    ],
+    items:[
+        {id:'mirror', label:'🪞 拿起手镜', hint:'圆圈中央的手镜'},
+        {id:'symbols', label:'👁️ 墙上的符号', hint:'刻满符号的墙壁'},
+        {id:'smash', label:'🔨 举起一块石头', hint:'角落里有一块松动的砖'}
+    ]
+}];
+
+// ─── 游戏状态 ──────────────────────────────────────────
 const G = {
-    scene: 'livingroom',
-    inventory: [],
-    sanity: 100,
-    flags: {
-        noteRead:false, tvWatched:false, tvStaticCount:0,
+    scene:'livingroom',
+    inventory:[],
+    sanity:100,
+    flags:{
+        noteRead:false, tvWatched:false, tvCount:0,
         bookFound:false, hallwayMirror:false,
-        bedroomEntered:false, laptopRead:false, wardrobeOpened:false,
-        studyEntered:false, journalRead:false, photoExamined:false,
-        bathroomEntered:false, bathroomMirror:false, cabinetOpened:false,
-        clockFound:false, basementKey:false,
-        basementEntered:false, finalChoice:false,
-        endingType:''
+        laptopRead:false, wardrobeOpen:false,
+        journalRead:false, photoSeen:false,
+        bathMirror:false, cabinetOpen:false, curtainPull:false,
+        basementKey:false, finalChoice:false,
+        ending:''
     },
-    _sceneHistory: [],
-    _stingCooldown: 0
+    _cd:0
 };
 
-function getSanityColor(){
-    if(G.sanity>60) return 'linear-gradient(90deg,#8a7a6a,#b0a090)';
-    if(G.sanity>30) return 'linear-gradient(90deg,#a08050,#c09060)';
-    return 'linear-gradient(90deg,#804040,#a05050)';
-}
+// ─── DOM 引用 ──────────────────────────────────────────
+const $ = id=>document.getElementById(id);
+const sceneTitle=$('scene-title'), sceneDesc=$('scene-desc');
+const actionsEl=$('actions'), tabsEl=$('room-tabs');
+const sanityBar=$('sanity-bar'), sanityNum=$('sanity-num');
+const asciiEl=$('ascii-art'), hintBox=$('hint-box');
 
+// ─── UI 更新 ──────────────────────────────────────────
 function updateUI(){
-    const pct=Math.max(0,G.sanity);
-    const m=document.getElementById('sanity-meter');
-    m.style.width=pct+'%';
-    m.style.background=getSanityColor();
+    const p=Math.max(0,G.sanity);
+    sanityBar.style.width=p+'%';
+    if(p>60) sanityBar.style.background='linear-gradient(90deg,#9a8a7a,#c0b0a0)';
+    else if(p>30) sanityBar.style.background='linear-gradient(90deg,#b09050,#c8a060)';
+    else sanityBar.style.background='linear-gradient(90deg,#905040,#b05050)';
+    sanityNum.textContent=Math.round(p);
     // 物品栏
     for(let i=0;i<4;i++){
-        const el=document.getElementById('slot-'+(i+1));
+        const el=$('slot-'+i);
         if(!el) continue;
         if(i<G.inventory.length){
             el.textContent=G.inventory[i].icon;
-            el.className='slot has';
+            el.className='inv-slot has';
             el.title=G.inventory[i].name;
-        } else {
-            el.textContent='';
-            el.className='slot';
-            el.title='';
-        }
+        } else { el.textContent=''; el.className='inv-slot'; el.title=''; }
     }
 }
 
 function sanityDown(n){
     G.sanity=Math.max(0,G.sanity-n);
     updateUI();
-    if(n>=8 && G._stingCooldown<=0){
-        playSting(); G._stingCooldown=5;
-        // 屏幕微闪
-        const s=document.getElementById('screen');
-        s.style.animation='flicker .15s ease 3';
-        setTimeout(()=>s.style.animation='',500);
+    if(n>=8 && G._cd<=0){ playSting(); G._cd=5;
+        $('crt').style.animation='flicker .15s ease 3';
+        setTimeout(()=>$('crt').style.animation='',500);
     }
-    if(G.sanity<=20){
-        document.getElementById('scene-desc').style.opacity=0.6+Math.random()*0.4;
+    if(G.sanity<=20 && Math.random()<.15){
+        sceneDesc.style.transform='translate('+(Math.random()*3-1.5)+'px)';
+        setTimeout(()=>sceneDesc.style.transform='',150);
     }
 }
 
-// ---- 场景定义 ----
-const SCENES = {};
+// ─── 弹窗 ──────────────────────────────────────────────
+function showOverlay(title,body){
+    $('overlay-title').textContent=title;
+    $('overlay-body').innerHTML=body;
+    $('overlay').classList.add('show');
+}
+function closeOverlay(){ $('overlay').classList.remove('show'); }
 
-// ===== 客厅 =====
-SCENES.livingroom = {
-    title:'◈ 客厅',
-    desc:`这是你的公寓客厅。时钟指向深夜，昏黄的壁灯在墙上投下摇晃的影子。
-电视机开着，屏幕上只有<em>沙沙</em>的雪花。茶几上散落着几页纸，旁边的书架塞满了旧书。
-空气中有一股淡淡的……霉味？你不记得以前有过。
+// ─── 场景渲染 ──────────────────────────────────────────
+function renderScene(id){
+    const room = ROOMS.find(r=>r.id===id);
+    if(!room) return;
+    G.scene=id; G._cd=Math.max(0,G._cd-1);
 
-你莫名感到<em>不安</em>，但说不清为什么。`,
-    nav:[{id:'hallway',label:'走廊'},{id:'study',label:'书房'}],
-    items:[
-        {id:'note',label:'📄 查看茶几上的纸',hint:'一张对折的纸'},
-        {id:'tv',label:'📺 看电视机',hint:'雪花沙沙响'},
-        {id:'bookshelf',label:'📚 查看书架',hint:'旧书塞得满满'}
-    ],
-    actions:{
-        note(){
-            G.flags.noteRead=true;
-            showOverlay('一张纸条','<p>纸上只有一行字，用潦草的笔迹写着——</p><p style="font-size:20px;text-align:center;letter-spacing:6px;color:#a08070;margin:18px 0;">「别 回 头」</p><p style="color:#706050;font-size:12px;">你不确定这是不是你自己的字迹。</p>');
-            if(!G.flags.clockFound){G.flags.clockFound=true; sanityDown(5);}
-        },
-        tv(){
-            G.flags.tvWatched=true;
-            G.flags.tvStaticCount=(G.flags.tvStaticCount||0)+1;
-            let extra='';
-            if(G.flags.tvStaticCount===1){
-                extra='<p>雪花纹丝不动。但你盯着看了很久——你几乎觉得那噪点中有什么形状在<em>蠕动</em>。</p>';
-                sanityDown(4);
-            } else if(G.flags.tvStaticCount===2){
-                extra='<p>这一次……雪花短暂地消散了一下。画面里出现了一个房间——和你现在站着的这个一模一样——但里面<em>有人</em>。那人背对着你，慢慢转过头来——</p><p>然后画面切回雪花。</p>';
-                sanityDown(8);
-            } else {
-                extra='<p>电视似乎正常了。只是普通的雪花。但你能感觉到……有什么东西从屏幕里<em>看着你</em>。</p>';
-            }
-            showOverlay('电视机',`<p>雪花沙沙作响，在安静的房间里格外刺耳。</p>${extra}`);
-        },
-        bookshelf(){
-            if(!G.flags.bookFound){
-                G.flags.bookFound=true;
-                G.inventory.push({icon:'🔑',name:'旧钥匙'});
-                updateUI();
-                showOverlay('书架上','<p>你抽出一本名为《唯恐》的旧书，书页间掉出一把<em>生锈的钥匙</em>。</p><p>钥匙上刻着一个数字：<strong>7</strong>。</p><p>你把钥匙收了起来。</p>');
-                playSting();
-            } else {
-                showOverlay('书架','<p>书架上大多是些旧小说和工具书。那本《唯恐》你放回去了，但总觉得它<em>在盯着你</em>。</p>');
-            }
-        }
-    }
-};
+    const locked = room.locked && !G.flags[room.lockKey];
+    sceneTitle.textContent='◈ '+room.label;
+    sceneDesc.innerHTML=locked
+        ? '<p style="color:#504540;letter-spacing:2px;">🔒 门锁着。你需要找到钥匙。</p>'
+        : room.desc;
 
-// ===== 走廊 =====
-SCENES.hallway = {
-    title:'◈ 走廊',
-    desc:`走廊比记忆中长了一些。昏黄的灯泡有一盏在闪烁，墙壁上的影子跟着一跳一跳的。
-走廊尽头有一面<em>穿衣镜</em>，反射着走廊深处的黑暗。
-左边是卧室门，右边是浴室门。尽头似乎还有一扇向下的门——地下室？你不记得有地下室。`,
-    nav:[{id:'livingroom',label:'客厅'},{id:'bedroom',label:'卧室'},{id:'bathroom',label:'浴室'},{id:'basement',label:'下楼梯',need:'basementKey'}],
-    items:[
-        {id:'mirror',label:'🪞 看那面镜子',hint:'走廊尽头的穿衣镜'}
-    ],
-    actions:{
-        mirror(){
-            G.flags.hallwayMirror=true;
-            sanityDown(6);
-            showOverlay('镜子','<p>你看向镜中的自己。</p><p>你站在走廊里。镜中的你也站在走廊里。</p><p>但镜中的你，<em>没有在呼吸</em>。</p><p>你屏住气，看着镜中的自己——它一动不动，像一尊蜡像。然后，它的嘴角<em>慢慢地</em>弯了一下。</p><p>你退后了一步。镜中的你没有动。</p>');
-            playSting();
-        }
-    }
-};
+    // ASCII art
+    asciiEl.textContent=room.ascii.join('\n');
+    asciiEl.style.animation='breathe 4s ease-in-out infinite';
 
-// ===== 卧室 =====
-SCENES.bedroom = {
-    title:'◈ 卧室',
-    desc:`卧室很暗。窗帘拉得严严实实，月光勉强透进来一丝。
-床上被褥凌乱，像是有人刚起来——但你是一个人住。
-笔记本电脑合着放在书桌上，旁边有一个<em>老式闹钟</em>，指针停在<strong>3:07</strong>。
-衣柜的门<em>虚掩着</em>，露出一条黑缝。`,
-    nav:[{id:'hallway',label:'走廊'}],
-    items:[
-        {id:'laptop',label:'💻 打开笔记本',hint:'合着的笔记本电脑'},
-        {id:'wardrobe',label:'🚪 打开衣柜',hint:'虚掩着的衣柜'},
-        {id:'window',label:'🪟 看看窗外',hint:'拉紧的窗帘'}
-    ],
-    actions:{
-        laptop(){
-            if(!G.flags.laptopRead){
-                G.flags.laptopRead=true;
-                G.flags.clockFound=true;
-                sanityDown(5);
-                showOverlay('笔记本电脑',
-                    `<p>屏幕亮起。桌面上有一个打开的文本文件，标题是——</p>
-                    <p style="text-align:center;letter-spacing:4px;margin:14px 0;color:#a08070;">「给 自 己 的 备 忘」</p>
-                    <p>「钥匙在客厅书架的书里。地下室。我藏了一些东西在那里。如果我不记得了——去看看。」</p>
-                    <p style="color:#706050;font-size:12px;">文件的修改时间是……2036年。这不可能是真的。</p>`);
-                if(!G.flags.basementKey && G.flags.bookFound){
-                    G.flags.basementKey=true;
-                    setTimeout(()=>{
-                        showOverlay('提示','<p>你摸到口袋里那把旧钥匙——它<em>微微发烫</em>。</p><p>也许它就是用来开那扇地下室门的。</p>');
-                    },500);
-                }
-            } else {
-                showOverlay('笔记本电脑','<p>文件还在那里。你注意到最下面还有一行小字：</p><p style="text-align:center;color:#605040;font-size:12px;">「记住，你不是第一次看到这个。」</p>');
-            }
-        },
-        wardrobe(){
-            if(!G.flags.wardrobeOpened){
-                G.flags.wardrobeOpened=true;
-                sanityDown(8);
-                showOverlay('衣柜',
-                    `<p>你猛地拉开柜门——</p>
-                    <p>里面空荡荡的。只有几件旧衣服挂在横杆上。</p>
-                    <p>但衣柜的内壁……写满了字。密密麻麻，用指甲刻上去的：</p>
-                    <p style="font-size:13px;color:#806060;text-align:center;line-height:2;margin:12px 0;">
-                    「它学我说话」<br>
-                    「它已经学会走路了」<br>
-                    「它开始不用睡觉了」<br>
-                    「它在我照镜子的时候模仿我」<br>
-                    「它越来越像我了」<br>
-                    「……它已经取代我了」<br>
-                    「我现在是谁？」
-                    </p>`);
-                playSting();
-            } else {
-                showOverlay('衣柜','<p>你不想再打开它了。但你能听到柜门里面——极其微弱地——有什么在<em>呼吸</em>。</p>');
-                sanityDown(2);
-            }
-        },
-        window(){
-            sanityDown(3);
-            showOverlay('窗外','<p>你掀开窗帘一角向外看去。</p><p>外面是浓稠的黑。没有路灯，没有星光，没有任何城市的灯火。</p><p>然后你意识到——你住在五楼。窗外应该能看到对面的楼。</p><p>什么都没有。只有<em>纯粹的、没有尽头的黑暗</em>。</p>');
-        }
-    }
-};
-
-// ===== 书房 =====
-SCENES.study = {
-    title:'◈ 书房',
-    desc:`书房是你平时写作的地方。桌上散落着打印稿，墙壁上挂着几幅照片。
-角落里有一个老旧的钟摆，钟摆早已停止。
-桌上有一本翻开的<em>日记本</em>，最新的几页似乎被什么液体浸染过，字迹模糊不清。
-墙上的照片里，你能认出你自己——还有其他人，但他们的脸<em>看不清楚</em>。`,
-    nav:[{id:'livingroom',label:'客厅'}],
-    items:[
-        {id:'journal',label:'📖 翻阅日记',hint:'桌上的日记本'},
-        {id:'photos',label:'🖼️ 仔细看照片',hint:'墙上挂着的相框'}
-    ],
-    actions:{
-        journal(){
-            if(!G.flags.journalRead){
-                G.flags.journalRead=true;
-                G.flags.clockFound=true;
-                sanityDown(7);
-                showOverlay('日记本',
-                    `<p>你翻到最近的一页。字迹颤抖潦草，有些地方被水渍——不，也许是泪渍——浸花了。</p>
-                    <hr style="border-color:rgba(180,160,140,.1);margin:12px 0;">
-                    <p style="font-size:13px;color:#a09080;line-height:1.8;">
-                    「第七天了。我不知道我是谁。或者说，我不知道镜子里那个是谁。」<br><br>
-                    「它模仿得太好了。说话的语气，走路的姿势，甚至连我写字的习惯都学会了。」<br><br>
-                    「但我发现了一件事——它不会照镜子。它从不看镜子里的自己。」<br><br>
-                    「所以唯一能区分我们的方法……就是照镜子。」<br><br>
-                    「问题是——我现在看着镜子，看到的是它，还是我？」<br><br>
-                    「我已经分不清了。」<br><br>
-                    「也许……镜子里那个才是真的我。」<br><br>
-                    「而站在这边的……才是它。」
-                    </p>
-                    <hr style="border-color:rgba(180,160,140,.1);margin:12px 0;">
-                    <p style="color:#706050;font-size:12px;">日记的封面内侧写着一个日期——和今天是同一天，但是是<em>去年的</em>今天。</p>`);
-                playSting();
-            } else {
-                showOverlay('日记本','<p>你翻到最后一页。上面只有几个字：</p><p style="text-align:center;font-size:18px;letter-spacing:4px;color:#806060;margin:12px 0;">「不要相信镜子」</p>');
-            }
-        },
-        photos(){
-            if(!G.flags.photoExamined){
-                G.flags.photoExamined=true;
-                sanityDown(4);
-                showOverlay('墙上的照片',
-                    `<p>你和家人的合影。你们笑着，看起来很快乐。</p>
-                    <p>但每个人的脸上……<em>五官都在轻微地扭曲</em>。不是照片本身的问题——你凑近看，照片里每张脸的嘴巴都在慢慢地、几乎不易察觉地向下弯。</p>
-                    <p>你把照片拿下来翻到背面——</p>
-                    <p style="text-align:center;font-size:14px;color:#806060;margin:12px 0;">「这不是他们。这是它。」</p>
-                    <p style="color:#706050;font-size:12px;">字迹和日记本上的一模一样。</p>`);
-            } else {
-                showOverlay('墙上的照片','<p>你不愿再看那些脸。但你注意到——最大的那张合影里，所有人的眼睛都<em>不在看镜头</em>。他们都在看镜头的<em>左边</em>，好像那里站着什么人。</p>');
-                sanityDown(2);
-            }
-        }
-    }
-};
-
-// ===== 浴室 =====
-SCENES.bathroom = {
-    title:'◈ 浴室',
-    desc:`浴室狭小而潮湿。水龙头没有关紧，一滴一滴地滴着水，在瓷砖上发出空洞的回声。
-墙上的大镜子蒙着一层水雾。但你洗过手之后就……镜子上不应该有雾。
-浴帘拉着，隐约能看到帘子后面的轮廓。
-洗手台上的药箱<em>微微打开着</em>。`,
-    nav:[{id:'hallway',label:'走廊'}],
-    items:[
-        {id:'mirror',label:'🪞 看浴室的镜子',hint:'蒙着雾的镜子'},
-        {id:'cabinet',label:'💊 打开药箱',hint:'洗手台上的药箱'},
-        {id:'curtain',label:'🚿 拉开浴帘',hint:'拉着的浴帘'}
-    ],
-    actions:{
-        mirror(){
-            G.flags.bathroomMirror=true;
-            sanityDown(10);
-            playSting();
-            showOverlay('浴室镜子',
-                `<p>你伸手擦了擦镜子上的雾。</p>
-                <p>雾擦掉了——但镜面上<em>浮现出一行字</em>，像是从玻璃内部渗透出来：</p>
-                <p style="text-align:center;font-size:22px;letter-spacing:6px;color:#906060;margin:16px 0;">「它在镜子里」</p>
-                <p>你看到镜中的自己。<em>它</em>在看着你。</p>
-                <p>不——你看着镜中的自己。</p>
-                <p>你分不清了。</p>
-                <p>你试着微笑。镜中的你没有笑。</p>
-                <p>你<em>停止</em>微笑。镜中的你微微笑了一下。</p>`);
-            // 触发后续剧情标记
-            G.flags.clockFound=true;
-        },
-        cabinet(){
-            if(!G.flags.cabinetOpened){
-                G.flags.cabinetOpened=true;
-                G.flags.clockFound=true;
-                sanityDown(5);
-                showOverlay('药箱',
-                    `<p>药箱里只有一些普通的药品。但最里面塞着一张纸条：</p>
-                    <p style="text-align:center;font-size:15px;color:#a08070;margin:14px 0;letter-spacing:2px;">「地下室里有答案。」</p>
-                    <p style="color:#706050;font-size:12px;">纸条背面用很小的字写着——<br>「但答案不会让你好过。」</p>`);
-            } else {
-                showOverlay('药箱','<p>药箱里空空的。但你关上它的时候，从镜子的反射里看到——浴帘<em>动了一下</em>。</p>');
-                sanityDown(3);
-            }
-        },
-        curtain(){
-            sanityDown(6);
-            playHeart();
-            showOverlay('浴帘后面',
-                `<p>你深吸一口气，猛地拉开浴帘——</p>
-                <p>……</p>
-                <p>没有人。浴缸是空的。</p>
-                <p>但排水口那里，有一团黑色的头发。很长。你从没剪过那么短。</p>
-                <p>水龙头还在滴着水。</p>
-                <p style="color:#706050;font-size:12px;">滴。滴。滴。</p>`);
-        }
-    }
-};
-
-// ===== 地下室 =====
-SCENES.basement = {
-    title:'◈ 地下室',
-    desc:`你顺着狭窄的楼梯往下走。空气中弥漫着潮湿的泥土味和铁锈味。
-地下室里只有一盏昏黄的灯泡，悬在中央，微微摇晃，让影子在地板和墙壁上来回摆动。
-墙角堆着一些旧箱子，地上有用<em>红色颜料</em>画的一个圈——不，仔细看，那是<em>干涸的血</em>。
-圆圈中央放着一面<em>手镜</em>，镜面朝下。`,
-    nav:[{id:'hallway',label:'上楼'}],
-    items:[
-        {id:'mirror',label:'🪞 拿起那面手镜',hint:'圆圈中央的手镜'},
-        {id:'symbols',label:'👁️ 查看墙上的符号',hint:'墙上刻着奇怪的符号'}
-    ],
-    actions:{
-        mirror(){
-            if(!G.flags.finalChoice){
-                G.flags.finalChoice=true;
-                showOverlay('手镜',
-                    `<p>你伸手拿起那面手镜。</p>
-                    <p>它的背面刻着一行字：</p>
-                    <p style="text-align:center;font-size:14px;letter-spacing:2px;color:#a08070;margin:12px 0;">「你准备好了吗？」</p>
-                    <p>你翻过镜子——</p>
-                    <p>镜面里倒映出你的脸。</p>
-                    <p>但它<em>没有在动</em>。它静静地注视着镜外的你，眼神里带着一种……<em>悲伤的怜悯</em>。</p>
-                    <p>然后它开口了。没有声音，但你知道它在说什么：</p>
-                    <p style="text-align:center;font-size:16px;color:#806060;letter-spacing:3px;margin:14px 0;">「你终于来了。」</p>
-                    <p style="text-align:center;font-size:16px;color:#806060;letter-spacing:3px;margin:14px 0;">「现在——你想知道真相吗？」</p>
-                    <div style="text-align:center;margin-top:18px;">
-                        <button class="btn" onclick="endingChoice(true)" style="margin-right:10px;">知道真相</button>
-                        <button class="btn" onclick="endingChoice(false)">放下镜子</button>
-                    </div>`);
-            }
-        },
-        symbols(){
-            showOverlay('墙上的符号',
-                `<p>墙上刻满了重复的螺旋图案，密密麻麻，像某种强迫性的涂鸦。</p>
-                <p>但有一个角落，刻着你能看懂的文字——不是中文，而是你的记忆深处某个熟悉的语言。你本能地能"读"出它的意思：</p>
-                <p style="text-align:center;font-size:15px;color:#806060;margin:12px 0;">「世界是一面镜子。你看到的都是你自己。」</p>
-                <p style="text-align:center;font-size:15px;color:#806060;margin:12px 0;">「恐惧也是一面镜子。你害怕的——」</p>
-                <p style="text-align:center;font-size:15px;color:#806060;margin:12px 0;">「是你自己。」</p>`);
-        }
-    }
-};
-
-// ---- 场景渲染 ----
-let currentInteractions = null;
-
-function renderScene(sceneId){
-    const scene=SCENES[sceneId];
-    if(!scene) return;
-    G.scene=sceneId;
-    G._stingCooldown=Math.max(0,G._stingCooldown-1);
-
-    document.getElementById('scene-title').textContent=scene.title;
-    document.getElementById('scene-desc').innerHTML=scene.desc;
-
-    // 导航
-    const navEl=document.getElementById('nav');
-    navEl.innerHTML='';
-    scene.nav.forEach(n=>{
-        const btn=document.createElement('button');
-        btn.className='btn';
-        btn.textContent=n.label;
-        if(n.need && !G.flags[n.need]){
-            btn.className+=' disabled';
-            btn.title='你还不知道通往这里的钥匙在哪里……';
-        } else {
+    // 互动
+    actionsEl.innerHTML='';
+    if(!locked){
+        room.items.forEach(item=>{
+            const btn=document.createElement('button');
+            btn.className='btn-act';
+            btn.innerHTML=item.label+(item.hint?'<span class="hint">'+item.hint+'</span>':'');
             btn.onclick=()=>{
-                if(n.need && !G.flags[n.need]) return;
-                // 理智消耗
-                const costs={bedroom:1,study:1,bathroom:2,basement:3};
-                if(costs[n.id]) sanityDown(costs[n.id]);
-                renderScene(n.id);
+                const acts = ACTIONS[room.id];
+                if(acts && acts[item.id]) acts[item.id]();
+                else showOverlay(item.label,'<p>你仔细看了看，但没发现什么特别的东西。</p>');
             };
-        }
-        navEl.appendChild(btn);
-    });
-
-    // 互动项
-    const intEl=document.getElementById('interactions');
-    intEl.innerHTML='';
-    scene.items.forEach(item=>{
-        const btn=document.createElement('button');
-        btn.className='btn';
-        btn.innerHTML=item.label+(item.hint?'<span class="hint">'+item.hint+'</span>':'');
-        btn.onclick=()=>{
-            const action=scene.actions[item.id];
-            if(action) action();
-        };
-        intEl.appendChild(btn);
-    });
-    currentInteractions=intEl;
-
-    // 理智过低时场景抖动
-    if(G.sanity<=25){
-        const desc=document.getElementById('scene-desc');
-        if(Math.random()<0.08){
-            desc.style.transform='translate('+(Math.random()*4-2)+'px,'+(Math.random()*4-2)+'px)';
-            setTimeout(()=>desc.style.transform='',200);
-            if(Math.random()<0.3) sanityDown(1);
-        }
+            actionsEl.appendChild(btn);
+        });
     }
 
+    // 提示
+    const hints = {
+        livingroom:'客厅里似乎藏着什么……',
+        hallway:'走廊尽头的镜子让人不安。',
+        bedroom:'卧室里也许有线索。',
+        study:'日记里可能写着什么。',
+        bathroom:'浴室里的镜子……别盯着太久。',
+        basement: canGoodEnding() ? '你已集齐线索。砸碎它，迎来破晓。' : '心神未定，尚有迷雾未散……'
+    };
+    hintBox.textContent=locked?'🔒 门锁着':'⋮ '+(hints[id]||'继续探索……');
+
+    // Tabs
+    renderTabs();
     updateUI();
-    // 检查是否触发结局条件
     checkEnding();
+
+    // 低理智额外效果
+    if(G.sanity<=25 && Math.random()<.05){
+        sceneDesc.style.animation='glitchText .15s ease 2';
+        setTimeout(()=>sceneDesc.style.animation='',400);
+        sanityDown(1);
+    }
 }
 
-// ---- 结局系统 ----
+function renderTabs(){
+    tabsEl.innerHTML='';
+    ROOMS.forEach(r=>{
+        const btn=document.createElement('button');
+        const locked = r.locked && !G.flags[r.lockKey];
+        btn.className='tab'+(r.id===G.scene?' active':'')+(locked?' locked':'');
+        btn.innerHTML='<span class="dot"></span>'+r.label;
+        if(locked) btn.title='🔒 需要钥匙';
+        else btn.onclick=()=>{
+            if(r.id===G.scene) return;
+            const costs={bedroom:1,study:1,bathroom:2,basement:3};
+            if(costs[r.id]) sanityDown(costs[r.id]);
+            renderScene(r.id);
+        };
+        tabsEl.appendChild(btn);
+    });
+}
+
+// ─── 互动动作 ──────────────────────────────────────────
+const ACTIONS = {};
+
+// 客厅
+ACTIONS.livingroom = {
+    note(){
+        G.flags.noteRead=true;
+        if(!G.flags.basementKey) G.flags.basementKey=true;
+        showOverlay('一张纸条',
+            `<p>纸上只有一行字，用潦草的笔迹写着——</p>
+            <p style="font-size:24px;text-align:center;letter-spacing:8px;color:#a08070;margin:16px 0;">「别 回 头」</p>
+            <p style="color:#706050;font-size:12px;">你不确定这是不是你自己的字迹。</p>
+            <p style="color:#706050;font-size:12px;">纸条背面还有一行小字：<br>「地下室的钥匙……在书里。」</p>`);
+        sanityDown(4);
+    },
+    tv(){
+        G.flags.tvWatched=true;
+        G.flags.tvCount=(G.flags.tvCount||0)+1;
+        let extra='';
+        if(G.flags.tvCount===1){
+            extra='<p>雪花纹丝不动。但你盯着看了很久——你几乎觉得那噪点中有什么形状在<em>蠕动</em>。</p>';
+            sanityDown(4);
+        } else if(G.flags.tvCount===2){
+            extra='<p>这一次……雪花短暂地消散了一下。画面里出现了一个房间——和你现在站着的这个一模一样——但里面<em>有人</em>。那人背对着你，慢慢转过头来——</p><p>然后画面切回雪花。</p>';
+            sanityDown(8);
+        } else {
+            extra='<p>电视似乎正常了。只是普通的雪花。但你能感觉到……有什么东西从屏幕里<em>看着你</em>。</p>';
+        }
+        showOverlay('电视机',`<p>雪花沙沙作响，在安静的房间里格外刺耳。</p>${extra}`);
+    },
+    bookshelf(){
+        if(!G.flags.bookFound){
+            G.flags.bookFound=true;
+            G.inventory.push({icon:'🔑',name:'旧钥匙'});
+            updateUI();
+            showOverlay('书架',
+                `<p>你抽出一本名为《唯恐》的旧书，书页间掉出一把<em>生锈的钥匙</em>。</p>
+                <p>钥匙上刻着一个数字：<strong>7</strong>。</p>
+                <p>你把钥匙收了起来。</p>
+                <p style="color:#706050;font-size:12px;">不知为什么，你总觉得这把钥匙<em>一直</em>就在那里。</p>`);
+            playSting();
+        } else {
+            showOverlay('书架','<p>书架上大多是些旧小说和工具书。那本《唯恐》你放回去了，但总觉得它<em>在盯着你</em>。</p>');
+        }
+    }
+};
+
+// 走廊
+ACTIONS.hallway = {
+    mirror(){
+        G.flags.hallwayMirror=true;
+        sanityDown(6);
+        showOverlay('镜子',
+            `<p>你看向镜中的自己。</p>
+            <p>你站在走廊里。镜中的你也站在走廊里。</p>
+            <p>但镜中的你，<em>没有在呼吸</em>。</p>
+            <p>你屏住气，看着镜中的自己——它一动不动，像一尊蜡像。然后，它的嘴角<em>慢慢地</em>弯了一下。</p>
+            <p>你退后了一步。镜中的你没有动。</p>`);
+        playSting();
+    }
+};
+
+// 卧室
+ACTIONS.bedroom = {
+    laptop(){
+        if(!G.flags.laptopRead){
+            G.flags.laptopRead=true;
+            sanityDown(5);
+            showOverlay('笔记本电脑',
+                `<p>屏幕亮起。桌面上有一个打开的文本文件，标题是——</p>
+                <p style="text-align:center;letter-spacing:6px;margin:14px 0;color:#a08070;">「给 自 己 的 备 忘」</p>
+                <p>「钥匙在客厅书架的书里。地下室。我藏了一些东西在那里。如果我不记得了——去看看。」</p>
+                <p>「还有——<em>别照镜子</em>。至少在你去地下室之前别照。」</p>
+                <p style="color:#706050;font-size:12px;">文件的修改时间是……2036年。这不可能是真的。</p>`);
+            if(!G.flags.basementKey && G.flags.bookFound){
+                setTimeout(()=>{
+                    showOverlay('提示','<p>你摸到口袋里那把旧钥匙——它<em>微微发烫</em>。</p><p>也许它就是用来开那扇地下室门的。</p>');
+                },600);
+            }
+        } else {
+            showOverlay('笔记本电脑',
+                `<p>文件还在那里。你注意到最下面还有一行小字：</p>
+                <p style="text-align:center;color:#605040;font-size:12px;">「记住，你不是第一次看到这个。」</p>`);
+        }
+    },
+    wardrobe(){
+        if(!G.flags.wardrobeOpen){
+            G.flags.wardrobeOpen=true;
+            sanityDown(8);
+            showOverlay('衣柜',
+                `<p>你猛地拉开柜门——</p>
+                <p>里面空荡荡的。只有几件旧衣服挂在横杆上。</p>
+                <p>但衣柜的内壁……写满了字。密密麻麻，用指甲刻上去的：</p>
+                <p style="font-size:13px;color:#806060;text-align:center;line-height:2.2;margin:12px 0;">
+                「它学我说话」<br>
+                「它已经学会走路了」<br>
+                「它开始不用睡觉了」<br>
+                「它在我照镜子的时候模仿我」<br>
+                「它越来越像我了」<br>
+                「……它已经取代我了」<br>
+                「我现在是谁？」
+                </p>`);
+            playSting();
+        } else {
+            showOverlay('衣柜','<p>你不想再打开它了。但你能听到柜门里面——极其微弱地——有什么在<em>呼吸</em>。</p>');
+            sanityDown(2);
+        }
+    },
+    window(){
+        sanityDown(3);
+        showOverlay('窗外',
+            `<p>你掀开窗帘一角向外看去。</p>
+            <p>外面是浓稠的黑。没有路灯，没有星光，没有任何城市的灯火。</p>
+            <p>然后你意识到——你住在五楼。窗外应该能看到对面的楼。</p>
+            <p>什么都没有。只有<em>纯粹的、没有尽头的黑暗</em>。</p>
+            <p style="color:#706050;font-size:12px;">你感觉那片黑暗也在看着你。</p>`);
+    }
+};
+
+// 书房
+ACTIONS.study = {
+    journal(){
+        if(!G.flags.journalRead){
+            G.flags.journalRead=true;
+            sanityDown(7);
+            showOverlay('日记本',
+                `<p>你翻到最近的一页。字迹颤抖潦草，有些地方被水渍——不，也许是泪渍——浸花了。</p>
+                <hr style="border-color:rgba(180,160,140,.08);margin:12px 0;">
+                <p style="font-size:13px;color:#a09080;line-height:1.9;">
+                「第七天了。我不知道我是谁。或者说，我不知道镜子里那个是谁。」<br><br>
+                「它模仿得太好了。说话的语气，走路的姿势，甚至连我写字的习惯都学会了。」<br><br>
+                「但我发现了一件事——它不会照镜子。它从不看镜子里的自己。」<br><br>
+                「所以唯一能区分我们的方法……就是照镜子。」<br><br>
+                「问题是——我现在看着镜子，看到的是它，还是我？」<br><br>
+                「我已经分不清了。」<br><br>
+                「也许……镜子里那个才是真的我。」<br><br>
+                「而站在这边的……才是它。」
+                </p>
+                <hr style="border-color:rgba(180,160,140,.08);margin:12px 0;">
+                <p style="color:#706050;font-size:12px;">日记的封面内侧写着一个日期——和今天是同一天，但是是<em>去年的</em>今天。</p>`);
+            playSting();
+        } else {
+            showOverlay('日记本','<p>你翻到最后一页。上面只有几个字：</p><p style="text-align:center;font-size:20px;letter-spacing:6px;color:#806060;margin:12px 0;">「不要相信镜子」</p>');
+        }
+    },
+    photos(){
+        if(!G.flags.photoSeen){
+            G.flags.photoSeen=true;
+            sanityDown(4);
+            showOverlay('墙上的照片',
+                `<p>你和家人的合影。你们笑着，看起来很快乐。</p>
+                <p>但每个人的脸上……<em>五官都在轻微地扭曲</em>。不是照片本身的问题——你凑近看，照片里每张脸的嘴巴都在慢慢地、几乎不易察觉地向下弯。</p>
+                <p>你把照片拿下来翻到背面——</p>
+                <p style="text-align:center;font-size:14px;color:#806060;margin:12px 0;">「这不是他们。这是它。」</p>
+                <p style="color:#706050;font-size:12px;">字迹和日记本上的一模一样。</p>`);
+        } else {
+            showOverlay('墙上的照片','<p>你不愿再看那些脸。但你注意到——最大的那张合影里，所有人的眼睛都<em>不在看镜头</em>。他们都在看镜头的<em>左边</em>，好像那里站着什么人。</p>');
+            sanityDown(2);
+        }
+    }
+};
+
+// 浴室
+ACTIONS.bathroom = {
+    mirror(){
+        G.flags.bathMirror=true;
+        sanityDown(10);
+        playSting();
+        showOverlay('浴室镜子',
+            `<p>你伸手擦了擦镜子上的雾。</p>
+            <p>雾擦掉了——但镜面上<em>浮现出一行字</em>，像是从玻璃内部渗透出来：</p>
+            <p style="text-align:center;font-size:26px;letter-spacing:8px;color:#906060;margin:16px 0;">「它在镜子里」</p>
+            <p>你看到镜中的自己。<em>它</em>在看着你。</p>
+            <p>不——你看着镜中的自己。</p>
+            <p>你分不清了。</p>
+            <p>你试着微笑。镜中的你没有笑。</p>
+            <p>你<em>停止</em>微笑。镜中的你微微笑了一下。</p>`);
+    },
+    cabinet(){
+        if(!G.flags.cabinetOpen){
+            G.flags.cabinetOpen=true;
+            sanityDown(5);
+            showOverlay('药箱',
+                `<p>药箱里只有一些普通的药品。但最里面塞着一张纸条：</p>
+                <p style="text-align:center;font-size:16px;color:#a08070;margin:14px 0;letter-spacing:3px;">「地下室里有答案。」</p>
+                <p style="color:#706050;font-size:12px;">纸条背面用很小的字写着——<br>「但答案不会让你好过。」</p>`);
+        } else {
+            showOverlay('药箱','<p>药箱里空空的。但你关上它的时候，从镜子的反射里看到——浴帘<em>动了一下</em>。</p>');
+            sanityDown(3);
+        }
+    },
+    curtain(){
+        G.flags.curtainPull=true;
+        sanityDown(6);
+        playHeart();
+        showOverlay('浴帘后面',
+            `<p>你深吸一口气，猛地拉开浴帘——</p>
+            <p>……</p>
+            <p>没有人。浴缸是空的。</p>
+            <p>但排水口那里，有一团黑色的头发。很长。你从没剪过那么短。</p>
+            <p>水龙头还在滴着水。</p>
+            <p style="color:#706050;font-size:12px;">滴。滴。滴。</p>`);
+    }
+};
+
+// 地下室
+ACTIONS.basement = {
+    mirror(){
+        if(!G.flags.finalChoice){
+            G.flags.finalChoice=true;
+            showOverlay('手镜',
+                `<p>你伸手拿起那面手镜。</p>
+                <p>它的背面刻着一行字：</p>
+                <p style="text-align:center;font-size:14px;letter-spacing:3px;color:#a08070;margin:12px 0;">「你准备好了吗？」</p>
+                <p>你翻过镜子——</p>
+                <p>镜面里倒映出你的脸。</p>
+                <p>但它<em>没有在动</em>。它静静地注视着镜外的你，眼神里带着一种……<em>悲伤的怜悯</em>。</p>
+                <p>然后它开口了。没有声音，但你知道它在说什么：</p>
+                <p style="text-align:center;font-size:16px;color:#806060;letter-spacing:4px;margin:14px 0;">「你终于来了。」</p>
+                <p style="text-align:center;font-size:16px;color:#806060;letter-spacing:4px;margin:14px 0;">「现在——你想知道真相吗？」</p>
+                <div style="text-align:center;margin-top:20px;">
+                    <button class="btn-choice" onclick="endingChoose(true)">知道真相</button>
+                    <button class="btn-choice danger" onclick="endingChoose(false)">放下镜子</button>
+                    ${canGoodEnding() ? '<button class="btn-choice" style="color:#708060;border-color:rgba(100,140,80,.3);" onclick="endingChoose(\'good\')">🌅 砸碎镜子</button>' : ''}
+                </div>
+                ${!canGoodEnding() ? '<p style="color:#504540;font-size:11px;margin-top:10px;text-align:center;">⋮ 你心中尚有疑虑，无法下定决心砸碎它……</p>' : ''}`);
+        }
+    },
+    smash(){
+        if(canGoodEnding()){
+            showOverlay('举起石头',
+                `<p>你拾起角落里那块松动的砖石。它沉甸甸的，棱角分明。</p>
+                <p>你看向圆圈中央的那面手镜。</p>
+                <p>你知道该怎么做了。</p>
+                <p style="text-align:center;margin:16px 0;">
+                    <button class="btn-choice" onclick="endingChoose('good')" style="color:#708060;border-color:rgba(100,140,80,.3);">🔨 砸碎镜子</button>
+                </p>
+                <p style="color:#706050;font-size:12px;">一旦砸碎，就无法回头了。</p>`);
+        } else {
+            let hint = '<p>你捡起那块石头，举到一半——却停下了。</p><p>你心中还有太多疑团未解。就这样砸下去，你不敢保证会发生什么。</p>';
+            if(!G.flags.journalRead) hint += '<p style="color:#605040;font-size:12px;">⋮ 书房的日记……你应该再读一遍。</p>';
+            if(!G.flags.bathMirror) hint += '<p style="color:#605040;font-size:12px;">⋮ 浴室的镜子上似乎有什么线索。</p>';
+            if(!G.flags.laptopRead) hint += '<p style="color:#605040;font-size:12px;">⋮ 卧室的笔记本电脑里也许有答案。</p>';
+            if(G.sanity<=40) hint += '<p style="color:#605040;font-size:12px;">⋮ 你的心神太乱了，无法冷静地做出决定。</p>';
+            hint += '<p style="color:#504540;font-size:12px;margin-top:8px;">先集齐所有线索，保持心神清明，再回来吧。</p>';
+            showOverlay('你放下了石头', hint);
+        }
+    },
+    symbols(){
+        showOverlay('墙上的符号',
+            `<p>墙上刻满了重复的螺旋图案，密密麻麻，像某种强迫性的涂鸦。</p>
+            <p>但有一个角落，刻着你能看懂的文字——不是中文，而是你的记忆深处某个熟悉的语言。你本能地能"读"出它的意思：</p>
+            <p style="text-align:center;font-size:15px;color:#806060;margin:12px 0;">「世界是一面镜子。你看到的都是你自己。」</p>
+            <p style="text-align:center;font-size:15px;color:#806060;margin:12px 0;">「恐惧也是一面镜子。你害怕的——」</p>
+            <p style="text-align:center;font-size:15px;color:#806060;margin:12px 0;">「是你自己。」</p>`);
+    }
+};
+
+// ─── 好结局条件 ───────────────────────────────────────
+function canGoodEnding(){
+    const f=G.flags;
+    return f.journalRead && f.bathMirror && f.laptopRead && G.sanity>40;
+}
+
+// ─── 结局系统 ──────────────────────────────────────────
 function checkEnding(){
-    if(G.flags.endingType) return;
-    // 如果理智归零
-    if(G.sanity<=0 && !G.flags.endingType){
-        G.flags.endingType='madness';
+    if(G.flags.ending) return;
+    if(G.sanity<=0){
+        G.flags.ending='madness';
         showEnding('madness');
     }
 }
 
-function endingChoice(know){
+function endingChoose(know){
     closeOverlay();
-    if(know){
-        G.flags.endingType='truth';
-        showEnding('truth');
+    if(know==='good'){
+        G.flags.ending='good';
+        showEnding('good');
     } else {
-        G.flags.endingType='denial';
-        showEnding('denial');
+        G.flags.ending=know?'truth':'deny';
+        showEnding(know?'truth':'deny');
     }
 }
 
 function showEnding(type){
-    const el=document.getElementById('ending-screen');
-    const title=document.getElementById('ending-title');
-    const text=document.getElementById('ending-text');
-
+    const el=$('ending'), title=$('ending-title'), sub=$('ending-sub'), text=$('ending-text');
     el.className='show';
 
     if(type==='truth'){
-        el.className+=' ending-red';
+        el.classList.add('ending-truth');
         title.textContent='真 相';
-        title.style.color='#a06050';
-        text.innerHTML=`<p>你举起镜子，直视镜中的自己。</p>
-        <p>一瞬间，你明白了。</p>
-        <p>你才是镜子里的那一个。从一开始就是。</p>
-        <p>真正的你——那个在客厅里踟蹰、在卧室里恐惧、在走廊里逃避的你——早已在去年今天的那面镜子里，被替换了。</p>
-        <p>你一直以为自己在寻找真相。但真相是：<em>你根本不存在</em>。</p>
-        <p>你只是那个在镜中挣扎的倒影。而真正的你……早已离开了这个房间。</p>
-        <p style="margin-top:16px;color:#806060;">你放下镜子。世界归于寂静。</p>
-        <p style="color:#706050;font-size:12px;">在地下室的某个角落，一行你从未注意过的刻字：</p>
-        <p style="color:#706050;font-size:13px;">「唯恐天下不乱，唯恐镜中无我。」</p>`;
-    } else if(type==='denial'){
-        el.className+=' ending-blue';
+        sub.textContent='—— 你终于看到了 ——';
+        text.innerHTML=
+            `<p>你举起镜子，直视镜中的自己。</p>
+            <p>一瞬间，你明白了。</p>
+            <p>你才是镜子里的那一个。从一开始就是。</p>
+            <p>真正的你——那个在客厅里踟蹰、在卧室里恐惧、在走廊里逃避的你——早已在去年今天的那面镜子里，被替换了。</p>
+            <p>你一直以为自己在寻找真相。但真相是：<em>你根本不存在</em>。</p>
+            <p>你只是那个在镜中挣扎的倒影。而真正的你……早已离开了这个房间。</p>
+            <p style="margin-top:18px;color:#806060;">你放下镜子。世界归于寂静。</p>
+            <p style="color:#706050;font-size:12px;margin-top:12px;">在地下室的某个角落，一行你从未注意过的刻字：</p>
+            <p style="color:#706050;font-size:14px;letter-spacing:2px;">「唯恐天下不乱，唯恐镜中无我。」</p>`;
+        playSting();
+    } else if(type==='deny'){
+        el.classList.add('ending-deny');
         title.textContent='逃 离';
-        title.style.color='#506080';
-        text.innerHTML=`<p>你放下镜子，转身离开地下室。</p>
-        <p>你决定不去知道答案。有些东西，不知道更好。</p>
-        <p>你走上楼梯，穿过走廊，回到客厅。天似乎快亮了——虽然窗外依旧漆黑，但你知道太阳迟早会升起来。</p>
-        <p>你把电视关掉。把纸条收好。把一切恢复原样。</p>
-        <p>也许明天醒来，一切都会正常。也许你只是做了个噩梦。</p>
-        <p>但当你路过走廊尽头的镜子时——你忍不住看了一眼。</p>
-        <p>镜中的你也在看你自己。</p>
-        <p>它微微笑了一下。</p>
-        <p style="margin-top:16px;color:#706050;">你也笑了起来。</p>
-        <p style="color:#706050;font-size:13px;">毕竟，你还能去哪里呢？</p>`;
+        sub.textContent='—— 有些事，不知道更好 ——';
+        text.innerHTML=
+            `<p>你放下镜子，转身离开地下室。</p>
+            <p>你决定不去知道答案。有些东西，不知道更好。</p>
+            <p>你走上楼梯，穿过走廊，回到客厅。天似乎快亮了——虽然窗外依旧漆黑，但你知道太阳迟早会升起来。</p>
+            <p>你把电视关掉。把纸条收好。把一切恢复原样。</p>
+            <p>也许明天醒来，一切都会正常。也许你只是做了个噩梦。</p>
+            <p>但当你路过走廊尽头的镜子时——你忍不住看了一眼。</p>
+            <p>镜中的你也在看你自己。</p>
+            <p>它微微笑了一下。</p>
+            <p style="margin-top:18px;color:#706050;">你也笑了起来。</p>
+            <p style="color:#706050;font-size:13px;">毕竟，你还能去哪里呢？</p>`;
+    } else if(type==='good'){
+        el.classList.add('ending-truth');
+        title.textContent='破 晓';
+        sub.textContent='—— 镜子破碎之时 ——';
+        text.innerHTML=
+            `<p>你握紧那块石头，高高举起。</p>
+            <p>镜中的你——那个被困在玻璃另一面的倒影——它<em>没有躲避</em>。它的眼里闪过一丝释然。</p>
+            <p>你狠狠砸了下去。</p>
+            <p style="font-size:28px;text-align:center;margin:18px 0;letter-spacing:6px;">🔨 哗啦——</p>
+            <p>镜子碎裂成千万片。每一片碎片都映着光，每一片里都有一个你——但它们都在<em>微笑</em>。</p>
+            <p>一股冰冷的风从破碎的镜框中涌出，带着陈旧的气息。你闭上眼睛。</p>
+            <p>当你再次睁开时——</p>
+            <p>天亮了。</p>
+            <p style="margin:16px 0;">真正的晨光从地下室的窗缝里渗进来，金色的，温暖的，真实的。</p>
+            <p>你感受到久违的温暖。你低下头——手里握着的不是石头，而是一面完好的小镜子。镜中你的倒影在<em>对你微笑</em>，和你的动作完全同步。</p>
+            <p>你们终于合一了。</p>
+            <p style="margin-top:18px;color:#807060;">你走出地下室。走廊不再漫长，客厅不再阴暗。电视关着，安静而祥和。</p>
+            <p style="color:#807060;">你打开门，走进了真正的阳光里。</p>
+            <p style="color:#706050;font-size:13px;margin-top:16px;letter-spacing:2px;">「唯恐天下不乱，唯恐镜中无我——而今镜已碎，我已在。」</p>`;
+        // 好结局播放一段明亮音
+        try{
+            if(!AC) AC=new(window.AudioContext||window.webkitAudioContext)();
+            const buf=AC.createBuffer(1,AC.sampleRate*1.2,AC.sampleRate);
+            const d=buf.getChannelData(0);
+            for(let i=0;i<d.length;i++){
+                const t=i/AC.sampleRate;
+                d[i]=Math.sin(2*Math.PI*262*t)*Math.max(0,1-t/1.2)*.15
+                     +Math.sin(2*Math.PI*392*t)*Math.max(0,1-t/1.2)*.1;
+            }
+            const s=AC.createBufferSource(); s.buffer=buf;
+            const g=AC.createGain(); g.gain.value=.2;
+            s.connect(g); g.connect(AC.destination); s.start();
+        }catch(e){}
     } else if(type==='madness'){
-        el.className+=' ending-red';
+        el.classList.add('ending-mad');
         title.textContent='沉 沦';
-        title.style.color='#604040';
-        text.innerHTML=`<p>你的心神再也支撑不住了。</p>
-        <p>恐惧像潮水一样漫上来，淹没了最后一丝清醒。</p>
-        <p>你看到墙壁在呼吸。天花板在旋转。影子在角落里聚成人形。</p>
-        <p>你听到无数个声音同时在说话——其中有一个是你自己的。</p>
-        <p>它说：</p>
-        <p style="text-align:center;font-size:16px;color:#806060;letter-spacing:4px;margin:14px 0;">「别怕。你只是醒了。」</p>
-        <p>然后一切都安静了。</p>
-        <p style="margin-top:16px;color:#706050;font-size:12px;">客厅里，电视机还在沙沙作响。没有人看它。</p>`;
+        sub.textContent='—— 心神已尽 ——';
+        text.innerHTML=
+            `<p>你的心神再也支撑不住了。</p>
+            <p>恐惧像潮水一样漫上来，淹没了最后一丝清醒。</p>
+            <p>你看到墙壁在呼吸。天花板在旋转。影子在角落里聚成人形。</p>
+            <p>你听到无数个声音同时在说话——其中有一个是你自己的。</p>
+            <p>它说：</p>
+            <p style="text-align:center;font-size:18px;color:#806060;letter-spacing:6px;margin:16px 0;">「别怕。你只是醒了。」</p>
+            <p>然后一切都安静了。</p>
+            <p style="margin-top:18px;color:#706050;font-size:12px;">客厅里，电视机还在沙沙作响。没有人看它。</p>`;
     }
 
-    // 隐藏游戏界面
-    document.getElementById('game-container').style.display='none';
+    document.getElementById('game').style.display='none';
 }
 
-function restartGame(){
-    location.reload();
-}
+// ─── 初始化音频 ──────────────────────────────────────
+document.addEventListener('click',()=>{ if(!AC) initAudio(); },{once:true});
 
-// ---- 弹窗 ----
-function showOverlay(title,body){
-    const el=document.getElementById('overlay');
-    document.getElementById('overlay-title').textContent=title;
-    document.getElementById('overlay-body').innerHTML=body;
-    el.classList.add('show');
-}
-
-function closeOverlay(){
-    document.getElementById('overlay').classList.remove('show');
-}
-
-// ---- 全局点击初始化音频 ----
-document.addEventListener('click',()=>{
-    if(!audioCtx) initAudio();
-},{once:true});
-
-// ---- 启动 ----
+// ─── 启动 ──────────────────────────────────────────────
 renderScene('livingroom');
-updateUI();
 
-// 每秒轻微理智波动（低理智时）
+// 低理智周期性衰减
 setInterval(()=>{
-    if(G.flags.endingType) return;
-    if(G.sanity<50 && G.sanity>0 && Math.random()<0.1){
-        sanityDown(1);
-    }
-    G._stingCooldown=Math.max(0,G._stingCooldown-1);
+    if(G.flags.ending) return;
+    G._cd=Math.max(0,G._cd-1);
+    if(G.sanity<50 && G.sanity>0 && Math.random()<.08) sanityDown(1);
 },3000);
 
-console.log('唯恐 — 微恐ARG游戏');
-console.log('制作: 水喝千束');
+console.log('唯恐 — 微恐ARG | 桌面版');
 </script>
 </body>
 </html>
