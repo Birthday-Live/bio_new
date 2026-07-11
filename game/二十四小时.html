@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>⏳ 二十四小时 — 恐怖剧情游戏</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #0a0808;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            padding: 16px;
+            overflow-x: hidden;
+        }
+
+        /* ===== 噪点 ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0.03) 0px,
+                rgba(0,0,0,0.03) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            pointer-events: none;
+            z-index: 100;
+            animation: noise 0.5s steps(4) infinite;
+        }
+
+        @keyframes noise {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(-0.5px, 0.5px); }
+            50% { transform: translate(0.5px, -0.5px); }
+            75% { transform: translate(-0.5px, -0.5px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        /* ===== 暗角 ===== */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.6) 100%);
+            pointer-events: none;
+            z-index: 99;
+        }
+
+        .flicker-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(255,255,255,0.02);
+            pointer-events: none;
+            z-index: 98;
+            animation: flicker 8s ease-in-out infinite;
+        }
+
+        @keyframes flicker {
+            0%, 95%, 100% { opacity: 0; }
+            96% { opacity: 0.15; }
+            97% { opacity: 0; }
+            98% { opacity: 0.08; }
+        }
+
+        /* ===== 主容器 ===== */
+        .game-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 620px;
+            background: rgba(12, 10, 16, 0.92);
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            padding: 32px 34px;
+            border: 1px solid rgba(100, 60, 60, 0.15);
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.8), inset 0 0 60px rgba(80, 0, 0, 0.03);
+        }
+
+        /* ===== 标题栏 ===== */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid rgba(100, 60, 60, 0.1);
+        }
+
+        .game-title {
+            color: #b88a8a;
+            font-size: 14px;
+            letter-spacing: 4px;
+            font-weight: 300;
+        }
+
+        .game-title span { color: #6a3a3a; }
+
+        .save-indicator {
+            font-size: 11px;
+            color: #5a4a4a;
+            letter-spacing: 1px;
+        }
+
+        .save-indicator .saved { color: #6a8a6a; }
+        .save-indicator .unsaved { color: #8a5a5a; }
+
+        /* ===== SVG 图标容器 ===== */
+        .scene-icon {
+            text-align: center;
+            margin-bottom: 8px;
+            min-height: 64px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .scene-icon svg {
+            width: 64px;
+            height: 64px;
+            filter: drop-shadow(0 0 20px rgba(120, 40, 40, 0.12));
+            animation: icon-pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes icon-pulse {
+            0%, 100% { filter: drop-shadow(0 0 10px rgba(120, 40, 40, 0.08)); }
+            50% { filter: drop-shadow(0 0 28px rgba(180, 60, 60, 0.18)); }
+        }
+
+        /* 某些场景特殊动画 */
+        .scene-icon .glow-red svg {
+            filter: drop-shadow(0 0 30px rgba(200, 40, 40, 0.2));
+            animation: icon-pulse-red 2s ease-in-out infinite;
+        }
+
+        @keyframes icon-pulse-red {
+            0%, 100% { filter: drop-shadow(0 0 15px rgba(200, 40, 40, 0.1)); }
+            50% { filter: drop-shadow(0 0 35px rgba(200, 40, 40, 0.3)); }
+        }
+
+        .scene-icon .glow-blue svg {
+            filter: drop-shadow(0 0 30px rgba(40, 80, 200, 0.15));
+            animation: icon-pulse-blue 3s ease-in-out infinite;
+        }
+
+        @keyframes icon-pulse-blue {
+            0%, 100% { filter: drop-shadow(0 0 15px rgba(40, 80, 200, 0.08)); }
+            50% { filter: drop-shadow(0 0 35px rgba(40, 80, 200, 0.2)); }
+        }
+
+        .scene-icon .glow-gold svg {
+            filter: drop-shadow(0 0 30px rgba(200, 160, 60, 0.12));
+        }
+
+        .scene-location {
+            text-align: center;
+            font-size: 12px;
+            color: #6a4a4a;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+
+        .scene-location::before,
+        .scene-location::after { content: ' ▸ '; color: #4a2a2a; }
+
+        /* ===== 剧情文本 ===== */
+        .story-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 24px 26px;
+            margin-bottom: 22px;
+            border-left: 2px solid rgba(120, 50, 50, 0.2);
+            min-height: 130px;
+            position: relative;
+        }
+
+        .story-box p {
+            color: #c8b8b8;
+            font-size: 15px;
+            line-height: 2;
+            letter-spacing: 0.3px;
+        }
+
+        .story-box p .highlight { color: #d89a9a; font-weight: 500; }
+        .story-box p .whisper { color: #7a6a6a; font-style: italic; font-size: 14px; }
+        .story-box p .danger { color: #c86060; font-weight: 600; }
+
+        .story-box .divider-dot {
+            display: block;
+            text-align: center;
+            color: #4a2a2a;
+            font-size: 12px;
+            margin: 12px 0;
+            letter-spacing: 6px;
+        }
+
+        .glitch-flash { animation: glitchFlash 0.15s ease-out; }
+
+        @keyframes glitchFlash {
+            0% { background-color: rgba(180, 40, 40, 0.08); }
+            100% { background-color: transparent; }
+        }
+
+        /* ===== 选项按钮 ===== */
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .choice-btn {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(120, 70, 70, 0.12);
+            border-radius: 14px;
+            padding: 14px 20px;
+            color: #b8a0a0;
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            letter-spacing: 0.3px;
+        }
+
+        .choice-btn::before { content: '▸ '; color: #6a3a3a; font-size: 12px; }
+
+        .choice-btn:hover {
+            background: rgba(120, 40, 40, 0.08);
+            border-color: rgba(180, 80, 80, 0.2);
+            transform: translateX(6px);
+            color: #d0b0b0;
+        }
+
+        .choice-btn:active { transform: translateX(3px) scale(0.99); }
+
+        /* ===== 底部栏 ===== */
+        .game-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 14px;
+            border-top: 1px solid rgba(100, 60, 60, 0.06);
+            font-size: 11px;
+            color: #4a3a3a;
+        }
+
+        .footer-left { display: flex; gap: 12px; align-items: center; }
+
+        .footer-btn {
+            background: none;
+            border: 1px solid rgba(100, 60, 60, 0.08);
+            border-radius: 20px;
+            padding: 5px 14px;
+            color: #6a4a4a;
+            font-size: 11px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .footer-btn:hover {
+            background: rgba(100, 50, 50, 0.06);
+            border-color: rgba(140, 80, 80, 0.15);
+            color: #9a7a7a;
+        }
+
+        .footer-step { letter-spacing: 1px; color: #4a3a3a; }
+
+        /* ===== Toast ===== */
+        .save-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(10, 8, 12, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(100, 60, 60, 0.15);
+            border-radius: 12px;
+            padding: 10px 22px;
+            color: #8a7a7a;
+            font-size: 12px;
+            opacity: 0;
+            transition: all 0.4s ease;
+            z-index: 200;
+            pointer-events: none;
+            letter-spacing: 1px;
+        }
+
+        .save-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* ===== 结局样式 ===== */
+        .ending-peace { border-left-color: rgba(100, 120, 100, 0.2); }
+        .ending-peace p { color: #b8c8b8; }
+
+        .ending-horror { border-left-color: rgba(180, 40, 40, 0.3); }
+        .ending-horror p { color: #d0a0a0; }
+        .ending-horror p .highlight { color: #e08080; }
+
+        .ending-mystery { border-left-color: rgba(100, 80, 140, 0.2); }
+        .ending-mystery p { color: #c0b8d0; }
+
+        /* ============================================ */
+        /*  🚨 免责声明弹窗 */
+        /* ============================================ */
+        .disclaimer-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            animation: overlayFadeIn 0.6s ease;
+        }
+
+        @keyframes overlayFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .disclaimer-modal {
+            background: rgba(14, 12, 20, 0.96);
+            border: 1px solid rgba(100, 60, 60, 0.2);
+            border-radius: 24px;
+            padding: 36px 38px;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9);
+            animation: modalPop 0.5s ease;
+        }
+
+        @keyframes modalPop { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .disclaimer-modal .icon { font-size: 52px; display: block; margin-bottom: 14px; }
+
+        .disclaimer-modal h2 {
+            color: #c8a88a;
+            font-size: 18px;
+            font-weight: 500;
+            letter-spacing: 4px;
+            margin-bottom: 18px;
+        }
+
+        .disclaimer-modal .divider-line {
+            width: 60px;
+            height: 1px;
+            background: rgba(180, 140, 100, 0.15);
+            margin: 0 auto 18px auto;
+        }
+
+        .disclaimer-modal p {
+            color: #a89088;
+            font-size: 13px;
+            line-height: 2;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .disclaimer-modal .highlight-warn { color: #d4a070; }
+
+        .disclaimer-modal .author-line {
+            margin: 20px 0 18px 0;
+            padding: 12px 0;
+            border-top: 1px solid rgba(180, 140, 100, 0.08);
+            border-bottom: 1px solid rgba(180, 140, 100, 0.08);
+        }
+
+        .disclaimer-modal .author-line span { color: #8a7a6a; font-size: 13px; letter-spacing: 2px; }
+        .disclaimer-modal .author-line .name { color: #c8a890; font-weight: 500; font-size: 14px; }
+
+        .disclaimer-modal .agree-btn {
+            background: rgba(180, 120, 80, 0.06);
+            border: 1px solid rgba(180, 120, 80, 0.15);
+            border-radius: 30px;
+            padding: 12px 48px;
+            color: #c8a088;
+            font-size: 14px;
+            font-family: inherit;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 6px;
+        }
+
+        .disclaimer-modal .agree-btn:hover {
+            background: rgba(180, 120, 80, 0.12);
+            border-color: rgba(200, 140, 100, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(80, 40, 20, 0.1);
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 480px) {
+            .game-container { padding: 20px 18px; }
+            .story-box { padding: 18px 16px; min-height: 110px; }
+            .story-box p { font-size: 14px; line-height: 1.9; }
+            .choice-btn { padding: 12px 16px; font-size: 13px; }
+            .scene-icon svg { width: 52px; height: 52px; }
+            .game-header { flex-direction: column; gap: 6px; align-items: flex-start; }
+            .disclaimer-modal { padding: 28px 24px; }
+            .disclaimer-modal h2 { font-size: 16px; }
+            .disclaimer-modal p { font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="flicker-overlay"></div>
+    <div class="save-toast" id="saveToast">📼 进度已保存</div>
+
+    <!-- ===== 🚨 免责声明 ===== -->
+    <div class="disclaimer-overlay" id="disclaimerOverlay">
+        <div class="disclaimer-modal">
+            <span class="icon">⚠️</span>
+            <h2>免责声明</h2>
+            <div class="divider-line"></div>
+            <p>
+                本游戏为 <span class="highlight-warn">虚构剧情作品</span>，<br>
+                包含恐怖、悬疑及惊悚元素。<br><br>
+                如有心脏病、高血压、精神衰弱等情况，<br>
+                请 <span class="highlight-warn">慎重游玩</span>。<br><br>
+                所有角色、场景及事件均为虚构，<br>
+                如有雷同，纯属巧合。<br><br>
+                请合理分配时间，<span class="highlight-warn">不要影响正常生活</span>。
+            </p>
+            <div class="author-line">
+                <span>✧ 作者 ✧</span><br>
+                <span class="name">DeepSeek &amp; WaterChisato</span>
+            </div>
+            <button class="agree-btn" id="disclaimerAgree">我已知晓，开始游戏</button>
+        </div>
+    </div>
+
+    <!-- ===== 游戏容器 ===== -->
+    <div class="game-container" id="app" style="display:none;"></div>
+
+    <script>
+        // ================================================================
+        //  ⏳ 二十四小时 — 恐怖剧情游戏
+        //  作者：DeepSeek & WaterChisato
+        //  全部场景使用定制 SVG 图标
+        // ================================================================
+
+        const SAVE_KEY = 'horror_24h_save';
+
+        // ================================================================
+        //  🎨 SVG 图标系统
+        // ================================================================
+        const SVG_ICONS = {
+
+            // --- 沙漏 / 时间 ---
+            hourglass: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="18" y="6" width="28" height="6" rx="2" stroke="#b88a8a" stroke-width="1.5"/>
+                    <rect x="18" y="52" width="28" height="6" rx="2" stroke="#b88a8a" stroke-width="1.5"/>
+                    <path d="M20 12 L20 22 Q32 32 44 22 L44 12" stroke="#8a5a5a" stroke-width="1.2" fill="none"/>
+                    <path d="M20 52 L20 42 Q32 32 44 42 L44 52" stroke="#8a5a5a" stroke-width="1.2" fill="none"/>
+                    <line x1="32" y1="32" x2="32" y2="34" stroke="#6a3a3a" stroke-width="1.5"/>
+                    <circle cx="32" cy="35" r="1.5" fill="#6a3a3a" opacity="0.6"/>
+                    <animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="20s" repeatCount="indefinite"/>
+                </svg>`,
+
+            // --- 蜡烛 ---
+            candle: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="28" y="26" width="8" height="28" rx="2" stroke="#b88a8a" stroke-width="1.3"/>
+                    <path d="M32 22 Q28 16 32 8 Q36 16 32 22Z" stroke="#d8a060" stroke-width="1" fill="none"/>
+                    <ellipse cx="32" cy="22" rx="6" ry="3" stroke="#d8a060" stroke-width="0.8" fill="none" opacity="0.5"/>
+                    <animate attributeName="opacity" values="1;0.85;1;0.9;1" dur="2s" repeatCount="indefinite"/>
+                </svg>`,
+
+            // --- 手电筒 ---
+            flashlight: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="20" y="22" width="24" height="8" rx="2" stroke="#b88a8a" stroke-width="1.3"/>
+                    <rect x="18" y="30" width="28" height="16" rx="2" stroke="#b88a8a" stroke-width="1.3"/>
+                    <circle cx="32" cy="26" r="2" fill="#d8a060" opacity="0.6"/>
+                    <path d="M18 38 L6 42 L6 34 Z" stroke="#6a4a3a" stroke-width="1" fill="none"/>
+                    <!-- 光束 -->
+                    <polygon points="46,34 58,28 58,40" stroke="#d8a060" stroke-width="0.5" fill="none" opacity="0.15"/>
+                </svg>`,
+
+            // --- 迷雾 / 人影 ---
+            mist: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 30 Q20 24 30 30 Q40 36 50 30 Q55 27 58 30" stroke="#7a6a6a" stroke-width="1" fill="none" opacity="0.4"/>
+                    <path d="M8 36 Q18 32 28 36 Q38 40 48 36 Q54 33 58 36" stroke="#7a6a6a" stroke-width="1" fill="none" opacity="0.3"/>
+                    <path d="M12 42 Q22 38 32 42 Q42 46 52 42 Q56 40 58 42" stroke="#7a6a6a" stroke-width="1" fill="none" opacity="0.2"/>
+                    <!-- 人影轮廓 -->
+                    <path d="M28 20 Q28 28 24 38 Q30 40 32 38 Q34 40 40 38 Q36 28 36 20Z" stroke="#5a4a4a" stroke-width="1" fill="none" opacity="0.3"/>
+                    <animate attributeName="opacity" values="0.6;0.4;0.6" dur="4s" repeatCount="indefinite"/>
+                </svg>`,
+
+            // --- 怀表 ---
+            pocket_watch: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="32" cy="32" r="18" stroke="#c8a88a" stroke-width="1.5"/>
+                    <circle cx="32" cy="32" r="14" stroke="#8a6a5a" stroke-width="0.8"/>
+                    <line x1="32" y1="20" x2="32" y2="32" stroke="#b88a8a" stroke-width="1.2"/>
+                    <line x1="32" y1="32" x2="40" y2="32" stroke="#b88a8a" stroke-width="1"/>
+                    <circle cx="32" cy="32" r="2" fill="#c8a88a" opacity="0.5"/>
+                    <rect x="30" y="48" width="4" height="8" rx="1.5" stroke="#6a4a3a" stroke-width="1"/>
+                    <circle cx="32" cy="12" r="2" stroke="#6a4a3a" stroke-width="0.8"/>
+                </svg>`,
+
+            // --- 箱子 / 钥匙 ---
+            chest: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="14" y="28" width="36" height="24" rx="2" stroke="#8a7a6a" stroke-width="1.3"/>
+                    <rect x="14" y="22" width="36" height="8" rx="2" stroke="#8a7a6a" stroke-width="1.3"/>
+                    <circle cx="32" cy="34" r="3" stroke="#b88a8a" stroke-width="1" fill="none"/>
+                    <line x1="32" y1="34" x2="32" y2="30" stroke="#b88a8a" stroke-width="1"/>
+                    <line x1="29" y1="31" x2="35" y2="31" stroke="#6a4a3a" stroke-width="0.5"/>
+                </svg>`,
+
+            // --- 蓝光之眼 ---
+            blue_eye: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <ellipse cx="32" cy="32" rx="22" ry="14" stroke="#6a8aaa" stroke-width="1.3"/>
+                    <ellipse cx="32" cy="32" rx="10" ry="10" stroke="#4a6a8a" stroke-width="1" fill="none"/>
+                    <circle cx="32" cy="32" r="5" fill="#4a7aaa" opacity="0.15"/>
+                    <circle cx="32" cy="32" r="2" fill="#8ab8d8" opacity="0.3"/>
+                    <animate attributeName="opacity" values="1;0.7;1" dur="3s" repeatCount="indefinite"/>
+                </svg>`,
+
+            // --- 玻璃罐 ---
+            jar: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="20" y="14" width="24" height="6" rx="2" stroke="#8a7a7a" stroke-width="1.2"/>
+                    <path d="M22 20 L20 52 Q20 56 24 56 L40 56 Q44 56 44 52 L42 20Z" stroke="#8a7a7a" stroke-width="1.2" fill="none"/>
+                    <ellipse cx="32" cy="38" rx="8" ry="10" stroke="#6a5a5a" stroke-width="0.8" fill="none"/>
+                    <circle cx="32" cy="40" r="2" fill="#8a4a4a" opacity="0.3"/>
+                    <animate attributeName="opacity" values="1;0.9;1" dur="1.5s" repeatCount="indefinite"/>
+                </svg>`,
+
+            // --- 躲藏 ---
+            hiding: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="10" y="38" width="44" height="6" rx="1" stroke="#6a5a5a" stroke-width="1.2"/>
+                    <rect x="14" y="18" width="36" height="20" rx="2" stroke="#6a5a5a" stroke-width="1.2"/>
+                    <rect x="18" y="22" width="28" height="12" rx="1" stroke="#5a4a4a" stroke-width="0.8"/>
+                    <!-- 眼睛 -->
+                    <circle cx="28" cy="30" r="2" stroke="#b88a8a" stroke-width="0.8" fill="none"/>
+                    <circle cx="36" cy="30" r="2" stroke="#b88a8a" stroke-width="0.8" fill="none"/>
+                    <line x1="26" y1="30" x2="24" y2="30" stroke="#6a4a4a" stroke-width="0.5"/>
+                    <line x1="38" y1="30" x2="40" y2="30" stroke="#6a4a4a" stroke-width="0.5"/>
+                </svg>`,
+
+            // --- 走廊 / 门 ---
+            corridor: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- 透视走廊 -->
+                    <polygon points="4,50 60,50 48,20 16,20" stroke="#7a6a6a" stroke-width="1.2" fill="none"/>
+                    <line x1="32" y1="20" x2="32" y2="50" stroke="#5a4a4a" stroke-width="0.5" opacity="0.3"/>
+                    <!-- 门 -->
+                    <rect x="14" y="26" width="10" height="18" rx="1" stroke="#8a7a7a" stroke-width="1"/>
+                    <rect x="40" y="26" width="10" height="18" rx="1" stroke="#8a7a7a" stroke-width="1"/>
+                    <circle cx="22" cy="38" r="1" fill="#6a4a4a"/>
+                    <circle cx="42" cy="38" r="1" fill="#6a4a4a"/>
+                    <!-- 远处灯光 -->
+                    <polygon points="28,14 36,14 40,8 24,8" stroke="#6a5a3a" stroke-width="0.5" fill="none" opacity="0.3"/>
+                </svg>`,
+
+            // --- 镜子 ---
+            mirror: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="10" y="8" width="44" height="48" rx="3" stroke="#8a7a7a" stroke-width="1.3"/>
+                    <rect x="14" y="12" width="36" height="40" rx="2" stroke="#6a5a5a" stroke-width="0.8" fill="none"/>
+                    <!-- 镜中倒影 -->
+                    <path d="M24 24 Q24 32 20 40 Q28 42 32 40 Q36 42 44 40 Q40 32 40 24Z" stroke="#6a4a4a" stroke-width="0.8" fill="none" opacity="0.3"/>
+                    <line x1="28" y1="24" x2="28" y2="28" stroke="#6a4a4a" stroke-width="0.5" opacity="0.2"/>
+                    <line x1="36" y1="24" x2="36" y2="28" stroke="#6a4a4a" stroke-width="0.5" opacity="0.2"/>
+                    <!-- 裂纹 -->
+                    <path d="M32 12 L33 20 L30 24 L34 30" stroke="#8a5a5a" stroke-width="0.5" opacity="0.3"/>
+                </svg>`,
+
+            // --- 台灯 / 日志 ---
+            lamp_book: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 42 L32 10 L48 42Z" stroke="#b88a6a" stroke-width="1.2" fill="none"/>
+                    <line x1="32" y1="10" x2="32" y2="6" stroke="#8a6a4a" stroke-width="1"/>
+                    <rect x="18" y="40" width="28" height="4" rx="1" stroke="#6a5a4a" stroke-width="1"/>
+                    <!-- 灯光 -->
+                    <ellipse cx="32" cy="46" rx="20" ry="6" stroke="#d8a060" stroke-width="0.5" fill="none" opacity="0.1"/>
+                    <rect x="24" y="44" width="16" height="12" rx="1" stroke="#8a7a6a" stroke-width="0.8" fill="none"/>
+                    <line x1="28" y1="48" x2="36" y2="48" stroke="#6a5a4a" stroke-width="0.5"/>
+                    <line x1="28" y1="51" x2="34" y2="51" stroke="#6a5a4a" stroke-width="0.5"/>
+                    <animate attributeName="opacity" values="1;0.85;1" dur="3s" repeatCount="indefinite"/>
+                </svg>`,
+
+            // --- 手枪 ---
+            gun: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="28" y="28" width="24" height="8" rx="2" stroke="#8a7a7a" stroke-width="1.3"/>
+                    <rect x="20" y="30" width="10" height="4" rx="1" stroke="#8a7a7a" stroke-width="1"/>
+                    <rect x="50" y="30" width="4" height="4" rx="0.5" stroke="#6a5a5a" stroke-width="0.8"/>
+                    <circle cx="32" cy="32" r="1.5" fill="#6a4a4a" opacity="0.3"/>
+                    <line x1="20" y1="30" x2="16" y2="28" stroke="#6a5a5a" stroke-width="0.8"/>
+                    <line x1="20" y1="34" x2="16" y2="36" stroke="#6a5a5a" stroke-width="0.8"/>
+                </svg>`,
+
+            // --- 手术灯 ---
+            surgery_lamp: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="32" cy="20" r="12" stroke="#8a7a7a" stroke-width="1.2"/>
+                    <circle cx="32" cy="20" r="6" stroke="#6a5a5a" stroke-width="0.8" fill="none"/>
+                    <circle cx="32" cy="20" r="2" fill="#b8a8a8" opacity="0.1"/>
+                    <!-- 光线 -->
+                    <polygon points="20,28 44,28 52,52 12,52" stroke="#6a5a4a" stroke-width="0.5" fill="none" opacity="0.08"/>
+                    <line x1="32" y1="32" x2="32" y2="52" stroke="#5a4a4a" stroke-width="0.3" opacity="0.1"/>
+                    <!-- 手术台 -->
+                    <rect x="16" y="48" width="32" height="4" rx="1" stroke="#6a5a5a" stroke-width="1"/>
+                </svg>`,
+
+            // --- 手术刀 ---
+            scalpel: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 52 L26 38 L48 16" stroke="#8a7a7a" stroke-width="1.5"/>
+                    <path d="M48 16 L52 12 L48 16" stroke="#8a7a7a" stroke-width="1"/>
+                    <rect x="22" y="42" width="4" height="10" rx="1" stroke="#6a5a5a" stroke-width="0.8"/>
+                    <!-- 齿轮装饰 -->
+                    <circle cx="40" cy="28" r="3" stroke="#6a5a5a" stroke-width="0.6" fill="none" opacity="0.3"/>
+                    <circle cx="40" cy="28" r="1" fill="#6a5a5a" opacity="0.2"/>
+                </svg>`,
+
+            // --- 铁门 / 锁 ---
+            locked_door: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="14" y="10" width="36" height="44" rx="3" stroke="#7a6a6a" stroke-width="1.5"/>
+                    <rect x="20" y="16" width="24" height="32" rx="2" stroke="#6a5a5a" stroke-width="1" fill="none"/>
+                    <!-- 锁 -->
+                    <rect x="28" y="34" width="8" height="6" rx="1.5" stroke="#b88a8a" stroke-width="1.2"/>
+                    <path d="M30 34 L30 30 Q30 26 34 26 Q38 26 38 30 L38 34" stroke="#b88a8a" stroke-width="1.2" fill="none"/>
+                    <circle cx="34" cy="38" r="1" fill="#6a4a4a"/>
+                    <!-- 铁锈装饰 -->
+                    <circle cx="26" cy="20" r="1" fill="#5a4a3a" opacity="0.2"/>
+                    <circle cx="38" cy="44" r="1" fill="#5a4a3a" opacity="0.2"/>
+                </svg>`,
+
+            // --- 撞击 ---
+            impact: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="32" y1="8" x2="32" y2="24" stroke="#8a5a5a" stroke-width="1.5"/>
+                    <line x1="22" y1="16" x2="28" y2="24" stroke="#8a5a5a" stroke-width="1"/>
+                    <line x1="42" y1="16" x2="36" y2="24" stroke="#8a5a5a" stroke-width="1"/>
+                    <!-- 震动波纹 -->
+                    <circle cx="32" cy="38" r="10" stroke="#6a4a4a" stroke-width="0.8" fill="none" opacity="0.3"/>
+                    <circle cx="32" cy="38" r="16" stroke="#6a4a4a" stroke-width="0.5" fill="none" opacity="0.15"/>
+                    <!-- 门 -->
+                    <rect x="22" y="32" width="20" height="24" rx="2" stroke="#7a6a6a" stroke-width="1.2"/>
+                    <animate attributeName="opacity" values="1;0.6;1;0.8;1" dur="1s" repeatCount="indefinite"/>
+                </svg>`,
+
+            // --- 奔跑 ---
+            running: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="32" cy="14" r="6" stroke="#b88a8a" stroke-width="1.2" fill="none"/>
+                    <path d="M28 20 L26 38 L20 50" stroke="#8a6a6a" stroke-width="1.2" fill="none"/>
+                    <path d="M28 20 L34 22 L38 18" stroke="#8a6a6a" stroke-width="1" fill="none"/>
+                    <path d="M22 40 L30 44 L38 40" stroke="#8a6a6a" stroke-width="1" fill="none"/>
+                    <line x1="26" y1="38" x2="18" y2="36" stroke="#6a5a5a" stroke-width="0.8"/>
+                    <line x1="34" y1="22" x2="44" y2="18" stroke="#6a5a5a" stroke-width="0.8"/>
+                    <!-- 速度线条 -->
+                    <line x1="46" y1="16" x2="56" y2="14" stroke="#5a4a4a" stroke-width="0.5" opacity="0.3"/>
+                    <line x1="46" y1="22" x2="54" y2="22" stroke="#5a4a4a" stroke-width="0.5" opacity="0.2"/>
+                    <line x1="44" y1="28" x2="52" y2="28" stroke="#5a4a4a" stroke-width="0.5" opacity="0.15"/>
+                </svg>`,
+
+            // --- 日出 ---
+            sunrise: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="32" cy="32" r="14" stroke="#c8a060" stroke-width="1.2" fill="none" opacity="0.5"/>
+                    <circle cx="32" cy="32" r="8" stroke="#d8b070" stroke-width="0.8" fill="none" opacity="0.3"/>
+                    <!-- 光芒 -->
+                    <line x1="32" y1="12" x2="32" y2="18" stroke="#c8a060" stroke-width="0.8" opacity="0.3"/>
+                    <line x1="32" y1="46" x2="32" y2="52" stroke="#c8a060" stroke-width="0.8" opacity="0.3"/>
+                    <line x1="12" y1="32" x2="18" y2="32" stroke="#c8a060" stroke-width="0.8" opacity="0.3"/>
+                    <line x1="46" y1="32" x2="52" y2="32" stroke="#c8a060" stroke-width="0.8" opacity="0.3"/>
+                    <!-- 地平线 -->
+                    <path d="M8 48 Q20 44 32 46 Q44 48 56 44" stroke="#8a8a7a" stroke-width="1" fill="none"/>
+                    <path d="M8 52 Q20 50 32 50 Q44 50 56 52" stroke="#6a6a5a" stroke-width="0.8" fill="none"/>
+                    <animate attributeName="opacity" values="0.6;1;0.6" dur="6s" repeatCount="indefinite"/>
+                </svg>`,
+
+            // --- 深渊 ---
+            abyss: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <ellipse cx="32" cy="32" rx="20" ry="18" stroke="#5a4a4a" stroke-width="1.3" fill="none"/>
+                    <ellipse cx="32" cy="36" rx="14" ry="10" stroke="#4a3a3a" stroke-width="0.8" fill="none"/>
+                    <ellipse cx="32" cy="40" rx="8" ry="5" stroke="#3a2a2a" stroke-width="0.5" fill="none"/>
+                    <line x1="20" y1="20" x2="24" y2="24" stroke="#6a4a4a" stroke-width="0.5"/>
+                    <line x1="44" y1="20" x2="40" y2="24" stroke="#6a4a4a" stroke-width="0.5"/>
+                    <animate attributeName="opacity" values="0.7;0.4;0.7" dur="5s" repeatCount="indefinite"/>
+                </svg>`,
+
+            // --- 焚化炉 ---
+            furnace: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="14" y="16" width="36" height="32" rx="3" stroke="#7a5a5a" stroke-width="1.3"/>
+                    <rect x="18" y="20" width="28" height="20" rx="2" stroke="#6a4a4a" stroke-width="0.8" fill="none"/>
+                    <path d="M20 40 L28 30 L36 36 L44 26" stroke="#8a5a3a" stroke-width="0.8" fill="none" opacity="0.3"/>
+                    <ellipse cx="32" cy="46" rx="8" ry="2" stroke="#5a3a3a" stroke-width="0.5" fill="none"/>
+                    <!-- 火焰 -->
+                    <path d="M26 36 Q28 28 32 32 Q34 26 38 34" stroke="#8a5a3a" stroke-width="0.6" fill="none" opacity="0.2"/>
+                    <animate attributeName="opacity" values="0.5;0.3;0.5" dur="2s" repeatCount="indefinite"/>
+                </svg>`,
+
+            // --- 照片 ---
+            photo: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="12" y="14" width="40" height="36" rx="2" stroke="#8a7a6a" stroke-width="1.3"/>
+                    <rect x="16" y="18" width="32" height="28" rx="1" stroke="#6a5a5a" stroke-width="0.8" fill="none"/>
+                    <!-- 两个人影 -->
+                    <circle cx="26" cy="28" r="4" stroke="#6a5a5a" stroke-width="0.6" fill="none"/>
+                    <path d="M22 36 L22 42 L30 42 L30 36" stroke="#6a5a5a" stroke-width="0.6" fill="none"/>
+                    <circle cx="38" cy="28" r="4" stroke="#6a5a5a" stroke-width="0.6" fill="none"/>
+                    <path d="M34 36 L34 42 L42 42 L42 36" stroke="#6a5a5a" stroke-width="0.6" fill="none"/>
+                    <!-- 泛黄痕迹 -->
+                    <circle cx="20" cy="22" r="2" fill="#6a5a3a" opacity="0.08"/>
+                    <circle cx="44" cy="40" r="3" fill="#6a5a3a" opacity="0.06"/>
+                </svg>`,
+
+            // --- 齿轮 / 真相 ---
+            gear: `
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="32" cy="32" r="10" stroke="#8a7a7a" stroke-width="1.2" fill="none"/>
+                    <circle cx="32" cy="32" r="4" stroke="#6a5a5a" stroke-width="0.8" fill="none"/>
+                    <!-- 齿轮齿 -->
+                    <rect x="30" y="18" width="4" height="6" rx="1" stroke="#8a7a7a" stroke-width="0.8"/>
+                    <rect x="30" y="40" width="4" height="6" rx="1" stroke="#8a7a7a" stroke-width="0.8"/>
+                    <rect x="18" y="30" width="6" height="4" rx="1" stroke="#8a7a7a" stroke-width="0.8"/>
+                    <rect x="40" y="30" width="6" height="4" rx="1" stroke="#8a7a7a" stroke-width="0.8"/>
+                    <animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="16s" repeatCount="indefinite"/>
+                </svg>`
+        };
+
+        // 获取场景对应的 SVG 和 glow 类
+        function getSceneIcon(sceneId) {
+            const iconMap = {
+                start:           { id: 'hourglass',   glow: '' },
+                intro_q1:        { id: 'candle',      glow: '' },
+                explore_room:    { id: 'flashlight',  glow: '' },
+                follow_shadow:   { id: 'mist',        glow: '' },
+                check_bed:       { id: 'pocket_watch', glow: 'glow-gold' },
+                search_debris:   { id: 'chest',       glow: '' },
+                blue_room:       { id: 'blue_eye',    glow: 'glow-blue' },
+                jar_scare:       { id: 'jar',         glow: 'glow-red' },
+                hide_desk:       { id: 'hiding',      glow: '' },
+                floor2:          { id: 'corridor',    glow: '' },
+                room3:           { id: 'mirror',      glow: 'glow-red' },
+                warm_room:       { id: 'lamp_book',   glow: 'glow-gold' },
+                drawer:          { id: 'gun',         glow: '' },
+                floor3:          { id: 'surgery_lamp',glow: '' },
+                operation:       { id: 'scalpel',     glow: 'glow-red' },
+                floor4_gate:     { id: 'locked_door', glow: '' },
+                kick_door:       { id: 'impact',      glow: 'glow-red' },
+                floor4_chase:    { id: 'running',     glow: '' },
+                shoot_ending:    { id: 'gun',         glow: 'glow-red' },
+                ending_freedom:  { id: 'sunrise',     glow: 'glow-gold' },
+                ending_caught:   { id: 'abyss',       glow: '' },
+                basement_deep:   { id: 'furnace',     glow: '' },
+                burn_find:       { id: 'photo',       glow: '' }
+            };
+
+            const mapping = iconMap[sceneId] || { id: 'hourglass', glow: '' };
+            const svg = SVG_ICONS[mapping.id] || SVG_ICONS.hourglass;
+            return { svg, glowClass: mapping.glow };
+        }
+
+        // ================================================================
+        //  📖 剧情数据
+        // ================================================================
+        const scenes = {
+
+            start: {
+                location: '??? · 某处',
+                text: `你睁开眼，头痛欲裂。<br><br>四周一片漆黑，只有头顶一盏老旧的灯管发出嗡嗡的声响，时不时闪烁一下。<br><br>你躺在一张铁床上，冰冷的金属触感让你打了个寒颤。<br><br><span class="whisper">「你醒了。」</span><br><br>角落里传来一个沙哑的声音。你猛地转头——那里坐着一个人影，看不清面容。<br><br><span class="highlight">「你有二十四小时。从这里逃出去，否则……你会永远留在这里。」</span>`,
+                choices: [
+                    { text: '「你是谁？这是哪里？」', next: 'intro_q1' },
+                    { text: '直接翻身下床，探索房间', next: 'explore_room' }
+                ]
+            },
+
+            intro_q1: {
+                location: '地下室 · 房间内',
+                text: `人影沉默了一会儿。<br><br><span class="whisper">「我是谁不重要……重要的是，这栋楼里有三样东西能帮你出去。一块旧怀表，一把钥匙，和一封没有署名的信。」</span><br><br>他站起身，走到门边。灯光映出他半边脸——憔悴、苍白，眼神空洞。<br><br><span class="highlight">「找齐它们，去四楼最东边的房间。祝你好运。」</span><br><br>他推开门，消失在走廊的黑暗中。`,
+                choices: [
+                    { text: '检查铁床周围', next: 'check_bed' },
+                    { text: '跟着那个人影出去', next: 'follow_shadow' }
+                ]
+            },
+
+            explore_room: {
+                location: '地下室 · 杂物间',
+                text: `你翻身下床，脚踩在冰冷的水泥地上。房间里堆满了废弃的器械和积灰的箱子。<br><br>墙上有几道深深的划痕，像是有人用指甲抓出来的。<br><br><span class="whisper">你注意到墙角有一扇虚掩的铁门，门缝里透出微弱的蓝光。</span>`,
+                choices: [
+                    { text: '推开铁门查看', next: 'blue_room' },
+                    { text: '搜索杂物堆', next: 'search_debris' }
+                ]
+            },
+
+            follow_shadow: {
+                location: '一楼 · 长廊',
+                text: `你冲出门去，走廊空荡荡的，那个人已经不见了。<br><br>老旧的地板在脚下吱呀作响。走廊两侧是一扇扇紧闭的门，门牌号模糊不清。<br><br>远处传来电梯井里钢索晃动的声音。<span class="whisper">……还有若有若无的哭声。</span><br><br>你面前有两段楼梯：一段向上，一段向下。`,
+                choices: [
+                    { text: '上二楼', next: 'floor2' },
+                    { text: '去地下室更深处', next: 'basement_deep' }
+                ]
+            },
+
+            check_bed: {
+                location: '地下室 · 铁床边',
+                text: `你掀开薄薄的床垫，在铁床的夹缝里摸到了一样东西——<br><br>一块老旧的<span class="highlight">怀表</span>，表盖已经失去了光泽。你试着打开它，表盖咔嗒一声弹开——里面夹着一张泛黄的黑白照片，照片上是一男一女，站在一栋老房子前微笑着。<br><br>表盘上刻着一行小字：<span class="whisper">「时间不等人。」</span><br><br><span class="divider-dot">· · ·</span><span class="highlight">【获得：旧怀表】</span>`,
+                choices: [
+                    { text: '把怀表收好，出门探索', next: 'follow_shadow' },
+                    { text: '再搜一下房间有没有别的', next: 'search_debris' }
+                ]
+            },
+
+            search_debris: {
+                location: '地下室 · 杂物堆',
+                text: `你在杂物堆里翻找，灰尘呛得你直咳嗽。旧报纸、破衣服、生锈的器械……<br><br>在箱子最底下，你发现了一个铁盒。撬开它——里面躺着一把<span class="highlight">铜钥匙</span>，还有一封被水浸过的信。<br><br>信上的字迹大部分已经模糊不清，只能辨认出几句话：<br><br><span class="whisper">「……它们不是人……不要相信它们说的话……四楼才是出口……」</span><br><br><span class="divider-dot">· · ·</span><span class="highlight">【获得：铜钥匙 + 泛黄的信】</span>`,
+                choices: [
+                    { text: '拿着东西上二楼', next: 'floor2' },
+                    { text: '去那个蓝色光的房间看看', next: 'blue_room' }
+                ]
+            },
+
+            blue_room: {
+                location: '一楼 · 暗室',
+                text: `你推开铁门，一股福尔马林的气味扑面而来。<br><br>房间里摆满了架子，上面全是玻璃罐——罐子里泡着各种……器官标本。💀<br><br>房间正中的桌上放着一台老旧的监视器，屏幕上显示着整栋楼的监控画面。你看到四楼走廊尽头有一扇锁着的门。<br><br>监视器旁边有一张纸条：<span class="whisper">「四楼的门需要三样东西才能打开。」</span>`,
+                choices: [
+                    { text: '记下信息，去二楼', next: 'floor2' },
+                    { text: '仔细检查玻璃罐', next: 'jar_scare' }
+                ]
+            },
+
+            jar_scare: {
+                location: '暗室 · 角落',
+                text: `你凑近一个玻璃罐，想看清楚里面泡的是什么——<br><br><span class="danger">突然！！！</span><br><br>罐子里的东西猛地睁开了眼睛，直直地盯着你！！！<br><br>你吓得往后倒退几步，撞翻了身后的架子。玻璃罐摔碎了一地，刺鼻的气味弥漫开来。<br><br>当你再看时——那个罐子已经空了。<br><br><span class="whisper">你听到走廊里传来湿漉漉的脚步声……</span>`,
+                choices: [
+                    { text: '快跑！上二楼！', next: 'floor2' },
+                    { text: '躲到桌子底下', next: 'hide_desk' }
+                ]
+            },
+
+            hide_desk: {
+                location: '暗室 · 桌底',
+                text: `你蜷缩在桌底，屏住呼吸。<br><br>脚步声越来越近——然后停在了门口。你看到一双苍白的脚站在门口，脚尖朝着你的方向。<br><br>它站了很久很久……<br><br>最终，脚步声远去了。<br><br>你浑身冷汗，从桌底爬出来。桌上监视器的画面里，四楼的灯在闪烁。你注意到监控中有一个房间的门，似乎开了一条缝。`,
+                choices: [
+                    { text: '赶紧去四楼', next: 'floor4_gate' },
+                    { text: '先去二楼看看', next: 'floor2' }
+                ]
+            },
+
+            floor2: {
+                location: '二楼 · 走廊',
+                text: `二楼的走廊比一楼更暗，只有几盏应急灯发出惨淡的绿光。<br><br>走廊两侧的房间门大多敞开着，里面是废弃的病房。墙上贴满了泛白的告示和……<span class="whisper">一些奇怪的涂鸦。</span><br><br>你注意到其中一扇门上用红色的颜料写着：<br><br><span class="danger">「不要进三号房」</span><br><br>而走廊尽头，有一扇半掩着的门，里面透出暖黄色的灯光——和别处都不一样。`,
+                choices: [
+                    { text: '去暖黄灯光的房间', next: 'warm_room' },
+                    { text: '无视警告，推开三号房', next: 'room3' },
+                    { text: '直接上三楼', next: 'floor3' }
+                ]
+            },
+
+            room3: {
+                location: '二楼 · 三号房',
+                text: `你推开了三号房的门。<br><br>房间里空荡荡的，只有一面镜子——一面巨大的、从地板延伸到天花板的镜子。<br><br>你看向镜子，却看到镜中的自己……在微笑。<br><br>但你并没有在笑。<br><br><span class="danger">镜中的「你」举起一只手，慢慢指向天花板，然后用指甲在镜面上划出一行字：</span><br><br><span class="whisper">「它们在三楼等你。」</span><br><br>灯光猛地熄灭了。`,
+                choices: [
+                    { text: '冲出房间，跑向三楼！', next: 'floor3' },
+                    { text: '回头跑向暖灯光的房间', next: 'warm_room' }
+                ]
+            },
+
+            warm_room: {
+                location: '二楼 · 值班室',
+                text: `你走进那个亮着暖黄灯光的房间——这是一间旧值班室。桌上有一盏老式台灯，旁边放着一本摊开的日志。<br><br>日志上潦草地写着：<br><br><span class="whisper">「第7天……它们越来越像人了。今天『它』穿着医生的白大褂，跟所有人打招呼。没人发现异常。除了我。」</span><br><br><span class="whisper">「第9天……我把三样东西藏在了不同的地方。怀表、钥匙、信。如果有人能找到它们——也许就能逃出去。」</span><br><br>日志的最后一行字迹颤抖：<span class="danger">「它们来了。我没有时间了。」</span>`,
+                choices: [
+                    { text: '带上日志，去三楼', next: 'floor3' },
+                    { text: '翻翻抽屉还有没有别的东西', next: 'drawer' }
+                ]
+            },
+
+            drawer: {
+                location: '值班室 · 抽屉',
+                text: `你拉开抽屉——里面放着一把老旧的<span class="highlight">手枪</span>，只有一发子弹。<br><br>旁边还有一张工作证，照片上是一个年轻的医生，笑容温和。名字栏写着：<span class="whisper">「林医生 · 精神科」</span>。<br><br>工作证的背面用圆珠笔写着四个字：<span class="highlight">「相信自己」</span>。<br><br><span class="divider-dot">· · ·</span><span class="highlight">【获得：手枪 × 1发】</span>`,
+                choices: [
+                    { text: '带上枪，去三楼', next: 'floor3' }
+                ]
+            },
+
+            floor3: {
+                location: '三楼 · 手术区',
+                text: `三楼的氛围完全不同。空气中弥漫着消毒水的气味，灯光明亮得刺眼——仿佛这里还在正常运转。<br><br>走廊尽头有一扇玻璃门，门上写着「手术室」。玻璃上蒙着一层雾气，看不清里面。<br><br>你听到门后传来金属器械碰撞的声音……<br><br>旁边有一条楼梯继续向上——通往四楼。`,
+                choices: [
+                    { text: '推开手术室的门', next: 'operation' },
+                    { text: '直接上四楼', next: 'floor4_gate' }
+                ]
+            },
+
+            operation: {
+                location: '三楼 · 手术室',
+                text: `你推开门——手术室里空无一人。但无影灯还亮着，手术台上躺着一个……和人一模一样的「东西」。<br><br>它的胸腔被打开了，里面没有器官，只有密密麻麻的<span class="whisper">发条和齿轮</span>。<br><br>你震惊地后退一步，撞到了身后的一个人。<br><br>你转过头——一个穿着白大褂的「人」正低头看着你。它的脸上带着标准的微笑，但眼睛……是玻璃做的。<br><br><span class="danger">「你看到了不该看的東西。」</span>`,
+                choices: [
+                    { text: '开枪！！！（如果有子弹）', next: 'shoot_ending' },
+                    { text: '转身拼命跑向四楼！', next: 'floor4_chase' }
+                ]
+            },
+
+            floor4_gate: {
+                location: '四楼 · 上锁的门',
+                text: `你来到四楼，走廊尽头有一扇厚重的铁门，门上有一个奇怪的锁孔——它需要三样东西同时验证才能打开。<br><br>锁孔旁边刻着三行小字：<br><br><span class="whisper">「时间之证」 —— 怀表</span><br><span class="whisper">「真相之匙」 —— 钥匙</span><br><span class="whisper">「记忆之信」 —— 信</span><br><br>`,
+                choices: function() {
+                    if (gameState.inventory.watch && gameState.inventory.key && gameState.inventory.letter) {
+                        return [
+                            { text: '将三样东西放入锁孔 🔓', next: 'ending_freedom' }
+                        ];
+                    } else {
+                        return [
+                            { text: '还缺东西……回去找齐', next: 'floor2' },
+                            { text: '强行踹门', next: 'kick_door' }
+                        ];
+                    }
+                }
+            },
+
+            kick_door: {
+                location: '四楼 · 铁门前',
+                text: `你用力踹了几脚门——纹丝不动。<br><br>但巨大的声响引来了……它们。<br><br>走廊两端都传来了整齐的脚步声，整齐得不像是人类。<br><br>你被困在中间了。<br><br><span class="danger">「时间到。」</span>`,
+                choices: [],
+                isEnding: true,
+                endingType: 'horror'
+            },
+
+            floor4_chase: {
+                location: '四楼 · 追逐中',
+                text: `你疯狂地跑上四楼，身后的脚步声紧追不舍。<br><br>铁门就在眼前——你把手伸进口袋……<br><br>`,
+                choices: function() {
+                    if (gameState.inventory.watch && gameState.inventory.key && gameState.inventory.letter) {
+                        return [
+                            { text: '把三样东西塞进锁孔！🔓', next: 'ending_freedom' }
+                        ];
+                    } else {
+                        return [
+                            { text: '……门没开 😰', next: 'ending_caught' }
+                        ];
+                    }
+                }
+            },
+
+            shoot_ending: {
+                location: '★ 结局：枪响',
+                text: `你举起手枪，对准了那个「东西」。<br><br>它歪着头看你，玻璃眼珠里倒映着你的身影。<br><br><span class="whisper">「你确定……要杀一个『人』吗？」</span><br><br>你的手在颤抖。这可能是你唯一的机会。<br><br>你扣下了扳机。<br><br><span class="danger">——砰！！！</span><br><br>「它」倒下了。但你听到整层楼传来了无数个脚步声——它们全都被惊动了。<br><br>你只有一发子弹。<br><br>铁门就在四楼……但你还有机会跑到那里吗？`,
+                choices: [
+                    { text: '拼命跑向四楼！', next: 'floor4_chase' }
+                ],
+                isEnding: false
+            },
+
+            ending_freedom: {
+                location: '★ 结局：破晓',
+                text: `三样东西放入锁孔的瞬间，铁门发出沉闷的咔嗒声。<br><br>你推开门——外面是清晨的阳光、新鲜的空气，和一条通往山下的路。<br><br>你回头看了一眼那栋楼——它在晨光中显得破败而普通，像是什么都没有发生过。<br><br>你手里还握着那块怀表。表盖里，照片上的两个人依然微笑着。<br><br>你忽然想起——那张照片里的人是……林医生和他的妻子。<br><br>而他的妻子，你在二楼的值班室照片上见过——就是那个在角落里对你说话的人影。<br><br><span class="highlight">「她放你走的。」</span><br><br><span class="whisper">🍃 你自由了。但你永远忘不了那二十四个小时。</span>`,
+                choices: [],
+                isEnding: true,
+                endingType: 'peace'
+            },
+
+            ending_caught: {
+                location: '★ 结局：永夜',
+                text: `它们追上了你。<br><br>你被拖回了那间地下室。铁床还在那里，头顶的灯管还在嗡嗡作响。<br><br>你失去了那三样东西。下一次「醒来」会是什么时候？<br><br>也许二十四小时后……也许永远。<br><br><span class="whisper">黑暗中，你又听到了那个沙哑的声音：</span><br><br><span class="danger">「你不该回来的。」</span><br><br><span class="whisper">🌑 游戏结束。你被困在了这二十四小时里。</span>`,
+                choices: [],
+                isEnding: true,
+                endingType: 'horror'
+            },
+
+            basement_deep: {
+                location: '负二层 · 焚化炉',
+                text: `你沿着楼梯向下走去，空气中弥漫着一股焦糊味。<br><br>地下室里有一座废弃的焚化炉，炉门半开着，里面还有没能完全烧尽的骨头碎片。<br><br>旁边堆着一摞病历档案——你随手翻开一本，上面写着：<br><br><span class="whisper">「患者编号 2401……林医生，精神科主治医师。于本院工作第十年出现妄想症状，声称本院工作人员被『非人存在』替换。于当年十二月失踪。」</span><br><br>你手上的病历——是那个「人影」的。`,
+                choices: [
+                    { text: '带着病历，赶快上去', next: 'floor2' },
+                    { text: '再翻翻焚化炉旁边有什么', next: 'burn_find' }
+                ]
+            },
+
+            burn_find: {
+                location: '焚化炉旁',
+                text: `你在焚化炉旁边发现了一个被烟熏黑的铁盒——里面有三张照片，和你在怀表里看到的是同一对男女。<br><br>照片背面写着字：<br><br>「第一天 · 我们来到这栋楼」——两人笑着<br>「第三年 · 她说她发现了秘密」——妻子神情忧虑<br>「第五年 · 我失去了她」——只剩林医生一人<br><br><span class="whisper">那个「人影」……是林医生的妻子。</span><br><br>她一直在这里，帮他指引那些被困的人逃出去。`,
+                choices: [
+                    { text: '带着这些线索，去四楼', next: 'floor4_gate' }
+                ]
+            }
+        };
+
+        // ================================================================
+        //  🎮 游戏引擎
+        // ================================================================
+
+        let gameState = {
+            sceneId: 'start',
+            stepCount: 0,
+            inventory: { watch: false, key: false, letter: false, gun: false },
+            flags: {}
+        };
+
+        // ---------- 存档 ----------
+        function saveGame() {
+            try {
+                localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
+                showToast('📼 进度已保存');
+                updateSaveIndicator(true);
+            } catch (e) { showToast('⚠️ 存档失败'); }
+        }
+
+        function loadGame() {
+            try {
+                const data = localStorage.getItem(SAVE_KEY);
+                if (data) {
+                    const parsed = JSON.parse(data);
+                    gameState = { ...gameState, ...parsed, inventory: { ...gameState.inventory, ...(parsed.inventory || {}) }, flags: { ...(parsed.flags || {}) } };
+                    return true;
+                }
+            } catch(e) {}
+            return false;
+        }
+
+        function deleteSave() {
+            localStorage.removeItem(SAVE_KEY);
+            showToast('🗑️ 存档已删除');
+            updateSaveIndicator(false);
+        }
+
+        function hasSaveData() {
+            return localStorage.getItem(SAVE_KEY) !== null;
+        }
+
+        let toastTimer = null;
+        function showToast(msg) {
+            const el = document.getElementById('saveToast');
+            el.textContent = msg;
+            el.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+        }
+
+        function updateSaveIndicator(saved) {
+            const el = document.querySelector('.save-indicator');
+            if (el) el.innerHTML = saved ? '<span class="saved">💾 已存档</span>' : '<span class="unsaved">○ 未存档</span>';
+        }
+
+        function resetGame() {
+            gameState = { sceneId: 'start', stepCount: 0, inventory: { watch: false, key: false, letter: false, gun: false }, flags: {} };
+            deleteSave();
+            renderScene('start');
+        }
+
+        // ---------- 渲染 ----------
+        function renderScene(sceneId) {
+            const scene = scenes[sceneId];
+            if (!scene) { renderScene('start'); return; }
+
+            gameState.sceneId = sceneId;
+            gameState.stepCount++;
+
+            // 背包更新
+            if (sceneId === 'check_bed') gameState.inventory.watch = true;
+            if (sceneId === 'search_debris') { gameState.inventory.key = true; gameState.inventory.letter = true; }
+            if (sceneId === 'drawer') gameState.inventory.gun = true;
+
+            // 结局样式
+            let endingClass = '';
+            if (scene.isEnding) {
+                if (scene.endingType === 'peace') endingClass = 'ending-peace';
+                else if (scene.endingType === 'horror') endingClass = 'ending-horror';
+                else if (scene.endingType === 'mystery') endingClass = 'ending-mystery';
+            }
+
+            // 选项
+            let choicesHtml = '';
+            let choicesList = typeof scene.choices === 'function' ? scene.choices() : scene.choices;
+            if (choicesList && choicesList.length > 0) {
+                choicesHtml = '<div class="choices">';
+                choicesList.forEach(choice => {
+                    choicesHtml += `<button class="choice-btn" data-next="${choice.next}">${choice.text}</button>`;
+                });
+                choicesHtml += '</div>';
+            } else if (scene.isEnding) {
+                choicesHtml = `<div class="choices"><button class="choice-btn" data-next="start">🔄 轮回 · 重新开始</button></div>`;
+            }
+
+            // 背包显示
+            const invItems = [];
+            if (gameState.inventory.watch) invItems.push('⌚怀表');
+            if (gameState.inventory.key) invItems.push('🔑钥匙');
+            if (gameState.inventory.letter) invItems.push('✉️信');
+            if (gameState.inventory.gun) invItems.push('🔫手枪');
+            const invText = invItems.length > 0 ? `🎒 ${invItems.join(' · ')}` : '🎒 空手';
+
+            const stepInfo = scene.isEnding ? '⏹️ 旅程终结' : `⏳ 第 ${gameState.stepCount} / 24 小时`;
+
+            // ---- SVG 图标 ----
+            const { svg, glowClass } = getSceneIcon(sceneId);
+
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="game-header">
+                    <div class="game-title">⏳ <span>二十四小时</span></div>
+                    <div class="save-indicator">○ 未存档</div>
+                </div>
+
+                <div class="scene-icon ${glowClass}">${svg}</div>
+                <div class="scene-location">${scene.location}</div>
+
+                <div class="story-box ${endingClass}"><p>${scene.text}</p></div>
+
+                <div class="choices">${choicesHtml}</div>
+
+                <div class="game-footer">
+                    <div class="footer-left">
+                        <span class="footer-step">${stepInfo}</span>
+                        <button class="footer-btn" id="saveBtn">💾 存档</button>
+                        <button class="footer-btn" id="loadBtn">📂 读档</button>
+                    </div>
+                    <div><button class="footer-btn" id="resetBtn">🗑️ 重置</button></div>
+                </div>
+
+                <div style="text-align:center;margin-top:10px;font-size:11px;color:#3a2a2a;letter-spacing:1px;">${invText}</div>
+            `;
+
+            app.style.display = 'block';
+            updateSaveIndicator(hasSaveData());
+
+            // 绑定事件
+            document.querySelectorAll('.choice-btn[data-next]').forEach(btn => {
+                btn.addEventListener('click', () => renderScene(btn.getAttribute('data-next')));
+            });
+            document.getElementById('saveBtn').addEventListener('click', saveGame);
+            document.getElementById('loadBtn').addEventListener('click', () => {
+                if (loadGame()) { showToast('📂 读取成功'); renderScene(gameState.sceneId); }
+                else { showToast('⚠️ 没有存档'); }
+            });
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                if (confirm('确定要重置所有进度吗？')) resetGame();
+            });
+
+            if (!scene.isEnding) {
+                try { localStorage.setItem(SAVE_KEY, JSON.stringify(gameState)); } catch(e) {}
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (sceneId === 'jar_scare' || sceneId === 'room3') {
+                const container = document.querySelector('.game-container');
+                container.classList.add('glitch-flash');
+                setTimeout(() => container.classList.remove('glitch-flash'), 300);
+            }
+        }
+
+        // ================================================================
+        //  🚀 启动
+        // ================================================================
+
+        const disclaimerOverlay = document.getElementById('disclaimerOverlay');
+        document.getElementById('disclaimerAgree').addEventListener('click', () => {
+            disclaimerOverlay.style.opacity = '0';
+            disclaimerOverlay.style.transition = 'opacity 0.6s ease';
+            setTimeout(() => {
+                disclaimerOverlay.style.display = 'none';
+                if (hasSaveData()) {
+                    if (confirm('📂 检测到之前的游戏进度，是否读取存档？\n（取消将从头开始）')) {
+                        loadGame();
+                    } else {
+                        deleteSave();
+                    }
+                }
+                renderScene(gameState.sceneId);
+            }, 600);
+        });
+    </script>
+</body>
+</html>
