@@ -1,26 +1,603 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>双向机器人启动中心</title>
-    <link rel="stylesheet" href="tgsx.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+<meta property="og:title" content="chisato的传声筒">
+<meta property="og:image" content="https://cdn5.telesco.pe/file/UR12hu0EyYn0kfGPiiB1aaq9dMABxSNoCis6IOw8TNAA_zr76QrFJwjy6MTrP0JZwa8AcvhfOcqeQTgN-Jdhwjpc3ldI0YInotLrv250MWXLGePuaSNPk0aXDekTwNGnyT4UvIbMuzJdXmO_bWW6vnDtR5lXKqfsKdIn6Z1rWMBNx0QH7xqbJqKINxS-9Gm7bG5p1u2Psiqv3c6yfg_51wJNqgJPS6A9zeuBsNapLTVzzf5bQxCf1uC431EyikuQHpZHmLq43ZyH2ulEqsHA-UXVZmDW3fWMAGAPvdE40zLk2Hv3dCgur_EQUZotzFrVDGpR4Mj6nyMNSx_FERq5MQ.jpg">
+<meta property="og:site_name" content="Telegram">
+<meta property="og:description" content="水喝千束的传声筒喵喵		此机器人与 @Chisato2_bot 无任何关联		关于我： chisato.org.cn/oldindex">
+
+<meta property="twitter:title" content="chisato的传声筒">
+<meta property="twitter:image" content="https://cdn5.telesco.pe/file/UR12hu0EyYn0kfGPiiB1aaq9dMABxSNoCis6IOw8TNAA_zr76QrFJwjy6MTrP0JZwa8AcvhfOcqeQTgN-Jdhwjpc3ldI0YInotLrv250MWXLGePuaSNPk0aXDekTwNGnyT4UvIbMuzJdXmO_bWW6vnDtR5lXKqfsKdIn6Z1rWMBNx0QH7xqbJqKINxS-9Gm7bG5p1u2Psiqv3c6yfg_51wJNqgJPS6A9zeuBsNapLTVzzf5bQxCf1uC431EyikuQHpZHmLq43ZyH2ulEqsHA-UXVZmDW3fWMAGAPvdE40zLk2Hv3dCgur_EQUZotzFrVDGpR4Mj6nyMNSx_FERq5MQ.jpg">
+<meta property="twitter:site" content="@Telegram">
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@Telegram">
+<meta name="twitter:description" content="水喝千束的传声筒喵喵		此机器人与 @Chisato2_bot 无任何关联		关于我： chisato.org.cn/oldindex">
+<meta property="al:ios:app_store_id" content="686449807">
+<meta property="al:ios:app_name" content="Telegram Messenger">
+<meta property="al:ios:url" content="tg:resolve?domain=WaterChisato_bot">
+
+<meta property="al:android:url" content="tg:resolve?domain=WaterChisato_bot">
+<meta property="al:android:app_name" content="Telegram">
+<meta property="al:android:package" content="org.telegram.messenger">
+
+<meta name="twitter:app:name:iphone" content="Telegram Messenger">
+<meta name="twitter:app:id:iphone" content="686449807">
+<meta name="twitter:app:url:iphone" content="tg:resolve?domain=WaterChisato_bot">
+<meta name="twitter:app:name:ipad" content="Telegram Messenger">
+<meta name="twitter:app:id:ipad" content="686449807">
+<meta name="twitter:app:url:ipad" content="tg:resolve?domain=WaterChisato_bot">
+<meta name="twitter:app:name:googleplay" content="Telegram">
+<meta name="twitter:app:id:googleplay" content="org.telegram.messenger">
+<meta name="twitter:app:url:googleplay" content="https://t.me/WaterChisato_bot">
+
+<meta name="apple-itunes-app" content="app-id=686449807, app-argument: tg:resolve?domain=WaterChisato_bot">
+<script>window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches&&document.documentElement&&document.documentElement.classList&&document.documentElement.classList.add('theme_dark');</script>
+
+<title>chisato的传声筒 — Telegram</title>
+
+<style>
+  :root {
+    --accent-btn-color: #2AABEE;
+    --tme-logo-color: #222;
+    --card-bg: #fff;
+    --card-bg-secondary: #f4f4f5;
+    --text-primary: #222;
+    --text-secondary: #8E8E93;
+    --text-muted: #B0B0B5;
+    --border-color: #E5E5EA;
+    --shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+    --shadow-hover: 0 8px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+    --radius: 20px;
+    --btn-radius: 30px;
+    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .theme_dark {
+    --accent-btn-color: #2AABEE;
+    --tme-logo-color: #fff;
+    --card-bg: #1c1c1e;
+    --card-bg-secondary: #2c2c2e;
+    --text-primary: #f5f5f5;
+    --text-secondary: #98989e;
+    --text-muted: #636366;
+    --border-color: #38383a;
+    --shadow: 0 4px 24px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.2);
+    --shadow-hover: 0 8px 40px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.25);
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--card-bg-secondary);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    transition: background var(--transition);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Animated background canvas */
+  #bg-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .theme_dark #bg-canvas {
+    opacity: 0.35;
+  }
+
+  /* Card */
+  .card {
+    position: relative;
+    z-index: 1;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: 420px;
+    padding: 40px 32px 32px;
+    text-align: center;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transition: all var(--transition);
+    border: 1px solid transparent;
+  }
+
+  .card:hover {
+    box-shadow: var(--shadow-hover);
+  }
+
+  .theme_dark .card {
+    border-color: var(--border-color);
+    background: rgba(28,28,30,0.92);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+  }
+
+  /* Logo */
+  .logo-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+
+  .logo-wrap svg {
+    width: 100px;
+    height: auto;
+  }
+
+  /* Avatar */
+  .avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    display: block;
+    object-fit: cover;
+    border: 3px solid var(--card-bg);
+    box-shadow: 0 0 0 1px var(--border-color), 0 4px 16px rgba(0,0,0,0.1);
+    transition: transform var(--transition);
+    background: var(--card-bg-secondary);
+  }
+
+  .avatar:hover {
+    transform: scale(1.05);
+  }
+
+  /* Channel name */
+  .channel-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    letter-spacing: -0.3px;
+    line-height: 1.3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .channel-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .channel-badge svg {
+    display: block;
+  }
+
+  /* Username */
+  .username {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    font-weight: 400;
+  }
+
+  .username a {
+    color: var(--accent-btn-color);
+    text-decoration: none;
+  }
+
+  .username a:hover {
+    text-decoration: underline;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 16px 0;
+  }
+
+  /* Description */
+  .description {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    padding: 0 4px;
+  }
+
+  /* Stats row */
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 20px;
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+  }
+
+  /* Buttons */
+  .btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: var(--btn-radius);
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--transition);
+    border: none;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary {
+    background: var(--accent-btn-color);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(42, 171, 238, 0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(42, 171, 238, 0.4);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(42, 171, 238, 0.25);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--accent-btn-color);
+    border: 1.5px solid var(--border-color);
+  }
+
+  .btn-secondary:hover {
+    background: var(--card-bg-secondary);
+    border-color: var(--accent-btn-color);
+  }
+
+  .btn-secondary:active {
+    transform: scale(0.98);
+  }
+
+  .btn-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.3px;
+  }
+
+  .footer a {
+    color: var(--accent-btn-color);
+    text-decoration: none;
+  }
+
+  /* Ripple effect */
+  .btn .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    transform: scale(0);
+    animation: rippleAnim 0.6s ease-out;
+    pointer-events: none;
+  }
+
+  @keyframes rippleAnim {
+    to {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+
+  /* Loading spinner for button */
+  .btn-loading {
+    pointer-events: none;
+    opacity: 0.8;
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    body {
+      padding: 12px;
+      align-items: flex-start;
+      padding-top: 48px;
+    }
+    .card {
+      padding: 32px 20px 24px;
+      border-radius: 16px;
+    }
+    .channel-name {
+      font-size: 20px;
+    }
+    .avatar {
+      width: 72px;
+      height: 72px;
+    }
+    .stats {
+      gap: 16px;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .card {
+      padding: 24px 16px 20px;
+    }
+    .btn {
+      font-size: 15px;
+      padding: 12px 20px;
+    }
+  }
+
+  /* Dark mode transition helper */
+  .theme-transition,
+  .theme_transition * {
+    transition: all 0.3s ease !important;
+  }
+
+  /* Entry animation */
+  .card {
+    animation: cardEntry 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+
+  @keyframes cardEntry {
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .card > * {
+    opacity: 0;
+    animation: fadeUp 0.5s ease forwards;
+  }
+
+  .card .logo-wrap { animation-delay: 0.1s; }
+  .card .avatar { animation-delay: 0.15s; }
+  .card .channel-name { animation-delay: 0.2s; }
+  .card .username { animation-delay: 0.25s; }
+  .card .divider { animation-delay: 0.3s; }
+  .card .description { animation-delay: 0.3s; }
+  .card .stats { animation-delay: 0.35s; }
+  .card .btn-group { animation-delay: 0.4s; }
+  .card .footer { animation-delay: 0.45s; }
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="glow"></div>
+<canvas id="bg-canvas" data-colors="#2AABEE,#A1DEFF,#7C4DFF,#FF6B9D,#FFD93D,#6BCB77"></canvas>
 
-        <h1>⚡ 双向机器人启动中心 ⚡</h1>
+<div class="card" role="main">
+  <!-- Telegram Logo -->
+  <div class="logo-wrap">
+    <svg class="tgme_logo" height="34" viewBox="0 0 133 34" width="133" xmlns="http://www.w3.org/2000/svg">
+      <g fill="none" fill-rule="evenodd">
+        <circle cx="17" cy="17" fill="var(--accent-btn-color)" r="17"/>
+        <path d="m7.06510669 16.9258959c5.22739451-2.1065178 8.71314291-3.4952633 10.45724521-4.1662364 4.9797665-1.9157646 6.0145193-2.2485535 6.6889567-2.2595423.1483363-.0024169.480005.0315855.6948461.192827.1814076.1361492.23132.3200675.2552048.4491519.0238847.1290844.0536269.4231419.0299841.65291-.2698553 2.6225356-1.4375148 8.986738-2.0315537 11.9240228-.2513602 1.2428753-.7499132 1.5088847-1.2290685 1.5496672-1.0413153.0886298-1.8284257-.4857912-2.8369905-1.0972863-1.5782048-.9568691-2.5327083-1.3984317-4.0646293-2.3321592-1.7703998-1.0790837-.212559-1.583655.7963867-2.5529189.2640459-.2536609 4.7753906-4.3097041 4.755976-4.431706-.0070494-.0442984-.1409018-.481649-.2457499-.5678447-.104848-.0861957-.2595946-.0567202-.3712641-.033278-.1582881.0332286-2.6794907 1.5745492-7.5636077 4.6239616-.715635.4545193-1.3638349.6759763-1.9445998.6643712-.64024672-.0127938-1.87182452-.334829-2.78737602-.6100966-1.12296117-.3376271-1.53748501-.4966332-1.45976769-1.0700283.04048-.2986597.32581586-.610598.8560076-.935815z" fill="#fff"/>
+        <path d="m49.4 24v-12.562h-4.224v-2.266h11.198v2.266h-4.268v12.562zm16.094-4.598h-7.172c.066 1.936 1.562 2.772 3.3 2.772 1.254 0 2.134-.198 2.97-.484l.396 1.848c-.924.396-2.2.682-3.74.682-3.476 0-5.522-2.134-5.522-5.412 0-2.97 1.804-5.764 5.236-5.764 3.476 0 4.62 2.86 4.62 5.214 0 .506-.044.902-.088 1.144zm-7.172-1.892h4.708c.022-.99-.418-2.618-2.222-2.618-1.672 0-2.376 1.518-2.486 2.618zm9.538 6.49v-15.62h2.706v15.62zm14.84-4.598h-7.172c.066 1.936 1.562 2.772 3.3 2.772 1.254 0 2.134-.198 2.97-.484l.396 1.848c-.924.396-2.2.682-3.74.682-3.476 0-5.522-2.134-5.522-5.412 0-2.97 1.804-5.764 5.236-5.764 3.476 0 4.62 2.86 4.62 5.214 0 .506-.044.902-.088 1.144zm-7.172-1.892h4.708c.022-.99-.418-2.618-2.222-2.618-1.672 0-2.376 1.518-2.486 2.618zm19.24-1.144v6.072c0 2.244-.462 3.85-1.584 4.862-1.1.99-2.662 1.298-4.136 1.298-1.364 0-2.816-.308-3.74-.858l.594-2.046c.682.396 1.826.814 3.124.814 1.76 0 3.08-.924 3.08-3.234v-.924h-.044c-.616.946-1.694 1.584-3.124 1.584-2.662 0-4.554-2.2-4.554-5.236 0-3.52 2.288-5.654 4.862-5.654 1.65 0 2.596.792 3.102 1.672h.044l.11-1.43h2.354c-.044.726-.088 1.606-.088 3.08zm-2.706 2.948v-1.738c0-.264-.022-.506-.088-.726-.286-.99-1.056-1.738-2.2-1.738-1.518 0-2.64 1.32-2.64 3.498 0 1.826.924 3.3 2.618 3.3 1.012 0 1.892-.66 2.2-1.65.088-.264.11-.638.11-.946zm5.622 4.686v-7.26c0-1.452-.022-2.508-.088-3.454h2.332l.11 2.024h.066c.528-1.496 1.782-2.266 2.948-2.266.264 0 .418.022.638.066v2.53c-.242-.044-.484-.066-.814-.066-1.276 0-2.178.814-2.42 2.046-.044.242-.066.528-.066.814v5.566zm16.05-6.424v3.85c0 .968.044 1.914.176 2.574h-2.442l-.198-1.188h-.066c-.638.836-1.76 1.43-3.168 1.43-2.156 0-3.366-1.562-3.366-3.19 0-2.684 2.398-4.07 6.358-4.048v-.176c0-.704-.286-1.87-2.178-1.87-1.056 0-2.156.33-2.882.792l-.528-1.76c.792-.484 2.178-.946 3.872-.946 3.432 0 4.422 2.178 4.422 4.532zm-2.64 2.662v-1.474c-1.914-.022-3.74.374-3.74 2.002 0 1.056.682 1.54 1.54 1.54 1.1 0 1.87-.704 2.134-1.474.066-.198.066-.396.066-.594zm5.6 3.762v-7.524c0-1.232-.044-2.266-.088-3.19h2.31l.132 1.584h.066c.506-.836 1.474-1.826 3.3-1.826 1.408 0 2.508.792 2.97 1.98h.044c.374-.594.814-1.034 1.298-1.342.616-.418 1.298-.638 2.2-.638 1.76 0 3.564 1.21 3.564 4.642v6.314h-2.64v-5.918c0-1.782-.616-2.838-1.914-2.838-.924 0-1.606.66-1.892 1.43-.088.242-.132.594-.132.902v6.424h-2.64v-6.204c0-1.496-.594-2.552-1.848-2.552-1.012 0-1.694.792-1.958 1.518-.088.286-.132.594-.132.902v6.336z" fill="var(--tme-logo-color)" fill-rule="nonzero"/>
+      </g>
+    </svg>
+  </div>
 
-        <p>点击下方按钮启动机器人</p>
+  <!-- Avatar -->
+  <img class="avatar"
+       src="https://chisatoimg.cc.cd/file/1784018697270_IMG_20260714_164439_991.jpg"
+       alt="chisato的传声筒"
+       loading="lazy">
 
-        <button id="startBtn">
-            启动双向机器人
-        </button>
+  <!-- Channel Name -->
+  <h1 class="channel-name">
+    chisato的传声筒
+    <span class="channel-badge" id="channelBadge">
+      <svg viewBox="0 0 1024 1024" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
+        <path d="M512 512m-512 0a512 512 0 1 0 1024 0 512 512 0 1 0-1024 0Z" fill="#FFFFFF"/>
+        <path d="M512 512m-418.909091 0a418.909091 418.909091 0 1 0 837.818182 0 418.909091 418.909091 0 1 0-837.818182 0Z" fill="#4AC7FF"/>
+        <path d="M474.112 763.950545a33.28 33.28 0 0 1-14.056727 4.049455 21.038545 21.038545 0 0 1-21.317818-20.805818 19.549091 19.549091 0 0 1 1.210181-5.864727l40.494546-187.438546-167.656727 0.325818a21.224727 21.224727 0 0 1-21.876364-20.805818 20.433455 20.433455 0 0 1 9.495273-16.849454l250.181818-255.767273c4.608-2.792727 9.541818-4.747636 14.661818-4.794182a21.131636 21.131636 0 0 1 21.364364 20.852364 19.968 19.968 0 0 1-2.792728 9.774545l-40.215272 184.32h167.842909a21.178182 21.178182 0 0 1 21.643636 20.852364 20.293818 20.293818 0 0 1-9.495273 16.942545l-249.483636 255.208727z" fill="#FFFFFF"/>
+      </svg>
+    </span>
+  </h1>
+  <p class="username">
+    <a href="tg:resolve?domain=WaterChisato_bot">@WaterChisato_bot</a>
+  </p>
+
+  <div class="divider"></div>
+
+  <!-- Description -->
+  <p class="description">
+    水喝千束的传声筒喵喵<br><br>
+    此机器人与 @Chisato2_bot 无任何关联<br><br>
+    关于我：<br>
+    <a href="https://chisato.org.cn/oldindex" target="_blank" rel="noopener" style="color:var(--accent-btn-color);text-decoration:none;">chisato.org.cn/oldindex</a>
+  </p>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-item">
+      <div class="stat-value">机器人</div>
+      <div class="stat-label">类型</div>
     </div>
+  </div>
 
-    <script src="tgsx.js"></script>
+  <!-- Buttons -->
+  <div class="btn-group">
+    <a class="btn btn-primary" href="tg:resolve?domain=WaterChisato_bot" id="openBtn">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      在 Telegram 中打开
+    </a>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <a href="https://telegram.org" target="_blank" rel="noopener">Telegram</a> · chisato的传声筒
+  </div>
+</div>
+
+<script>
+// ============================================================
+// TWallpaper — Animated fluid background
+// ============================================================
+var TWallpaper=function(){function x(a){for(var b=[].concat(G);0<a;)b.push(b.shift()),a--;a=[];for(var c=0;c<b.length;c+=2)a.push(b[c]);return a}function B(a,b){b%=90;var c=x(a%p);if(b){var d=x(++a%p);return[{x:c[0].x+(d[0].x-c[0].x)/90*b,y:c[0].y+(d[0].y-c[0].y)/90*b},{x:c[1].x+(d[1].x-c[1].x)/90*b,y:c[1].y+(d[1].y-c[1].y)/90*b},{x:c[2].x+(d[2].x-c[2].x)/90*b,y:c[2].y+(d[2].y-c[2].y)/90*b},{x:c[3].x+(d[3].x-c[3].x)/90*b,y:c[3].y+(d[3].y-c[3].y)/90*b}]}return c}function H(a){for(l+=a;90<=l;)l-=90,g++,g>=p&&(g-=p);for(;0>l;)l+=90,g--,0>g&&(g+=p)}function I(a){C+=a.deltaY;D||(requestAnimationFrame(P),D=!0)}function P(){var a=C/50;C%=50;if(a=0<a?Math.floor(a):Math.ceil(a))H(a),a=B(g,l),y(z(a));D=!1}function Q(){if(0<A.length){var a=A.shift();y(a)}else clearInterval(E)}function z(a){for(var b=f._hctx.createImageData(50,50),c=b.data,d=0,q=0;50>q;q++)for(var h=q/50-.5,F=h*h,v=0;50>v;v++){var m=v/50-.5,e=.35*Math.sqrt(m*m+F);e=e*e*6.4;var r=Math.sin(e),w=Math.cos(e);e=Math.max(0,Math.min(1,.5+m*w-h*r));m=Math.max(0,Math.min(1,.5+m*r+h*w));for(var J=w=r=0,K=0,t=0;t<u.length;t++){var k=e-a[t].x,L=m-a[t].y;k=Math.max(0,.9-Math.sqrt(k*k+L*L));k*=k*k*k;r+=k;w+=k*u[t].r/255;J+=k*u[t].g/255;K+=k*u[t].b/255}c[d++]=w/r*255;c[d++]=J/r*255;c[d++]=K/r*255;c[d++]=255}return b}function y(a){f._hctx.putImageData(a,0,0);f._ctx.drawImage(f._hc,0,0,50,50)}function M(){var a=+Date.now();!document.hasFocus()||a-N<R||(N=a,H(1),a=B(g,l),y(z(a)));O=requestAnimationFrame(M)}var g=0,l=0,N=0,R=1E3/15,A=[],E=null,O=null,u=[],n=[0,.25,.5,.75,1,1.5,2,2.5,3,3.5,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,18.3,18.6,18.9,19.2,19.5,19.8,20.1,20.4,20.7,21,21.3,21.6,21.9,22.2,22.5,22.8,23.1,23.4,23.7,24,24.3,24.6,24.9,25.2,25.5,25.8,26.1,26.3,26.4,26.5,26.6,26.7,26.8,26.9,27],G=[{x:.8,y:.1},{x:.6,y:.2},{x:.35,y:.25},{x:.25,y:.6},{x:.2,y:.9},{x:.4,y:.8},{x:.65,y:.75},{x:.75,y:.4}],p=G.length,D=!1,C=0,f={init:function(a){u=[];var b=a.getAttribute("data-colors")||"";b&&(b=b.split(","));for(var c=0;c<b.length;c++){var d=u,q=d.push;var h=(h=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(b[c]))?{r:parseInt(h[1],16),g:parseInt(h[2],16),b:parseInt(h[3],16)}:null;q.call(d,h)}f._hc||(f._hc=document.createElement("canvas"),f._hc.width=50,f._hc.height=50,f._hctx=f._hc.getContext("2d"));f._canvas=a;f._ctx=f._canvas.getContext("2d");f.update()},update:function(){var a=B(g,l);y(z(a))},toNextPosition:function(){clearInterval(E);A=[];var a=x(g%p);g++;var b=x(g%p),c=(b[0].x-a[0].x)/27,d=(b[0].y-a[0].y)/27,q=(b[1].x-a[1].x)/27,h=(b[1].y-a[1].y)/27,F=(b[2].x-a[2].x)/27,v=(b[2].y-a[2].y)/27,m=(b[3].x-a[3].x)/27;b=(b[3].y-a[3].y)/27;for(var e=0;60>e;e++)A.push(z([{x:a[0].x+c*n[e],y:a[0].y+d*n[e]},{x:a[1].x+q*n[e],y:a[1].y+h*n[e]},{x:a[2].x+F*n[e],y:a[2].y+v*n[e]},{x:a[3].x+m*n[e],y:a[3].y+b*n[e]}]));E=setInterval(Q,1E3/30)},animate:function(a){a?M():cancelAnimationFrame(O)},scrollAnimate:function(a){a?document.addEventListener("wheel",I):document.removeEventListener("wheel",I)}};return f}();
+
+// ============================================================
+// Initialize everything
+// ============================================================
+(function() {
+  var canvas = document.getElementById('bg-canvas');
+
+  // Make canvas full screen
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    if (window.tw) {
+      window.tw.update();
+    }
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+
+  // Init TWallpaper
+  window.tw = TWallpaper;
+  tw.init(canvas);
+  resizeCanvas();
+
+  // Start animation
+  tw.animate(true);
+
+  // Auto-scroll animation
+  tw.scrollAnimate(true);
+
+  // Cycle through positions periodically
+  setInterval(function() {
+    tw.toNextPosition();
+  }, 6000);
+
+  // ---- Ripple effect on buttons ----
+  document.querySelectorAll('.btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      var rect = btn.getBoundingClientRect();
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
+      var size = Math.max(rect.width, rect.height) * 2;
+      var ripple = document.createElement('span');
+      ripple.className = 'ripple';
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = (x - size / 2) + 'px';
+      ripple.style.top = (y - size / 2) + 'px';
+      btn.appendChild(ripple);
+      setTimeout(function() { ripple.remove(); }, 600);
+    });
+  });
+
+  // ---- Open in Telegram button ----
+  var openBtn = document.getElementById('openBtn');
+  if (openBtn) {
+    openBtn.addEventListener('click', function(e) {
+      var btn = this;
+      btn.classList.add('btn-loading');
+      btn.innerHTML = '<span class="spinner"></span> 打开中…';
+      // Direct tg:// open, no web fallback
+      setTimeout(function() {
+        btn.classList.remove('btn-loading');
+        btn.innerHTML = '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>\n      在 Telegram 中打开';
+      }, 3000);
+    });
+  }
+
+  // ---- Dark mode listener ----
+  var darkMq = window.matchMedia('(prefers-color-scheme: dark)');
+  darkMq.addEventListener('change', function(e) {
+    if (e.matches) {
+      document.documentElement.classList.add('theme_dark');
+    } else {
+      document.documentElement.classList.remove('theme_dark');
+    }
+    // Trigger wallpaper update on theme change
+    setTimeout(function() {
+      if (window.tw) window.tw.update();
+    }, 300);
+  });
+})();
+</script>
 
 </body>
 </html>
