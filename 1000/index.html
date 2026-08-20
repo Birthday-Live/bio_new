@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目筹备中 | Coming Soon</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- 背景粒子/网格视觉装饰 -->
+    <div class="bg-grid"></div>
+    <div class="glow-orb glow-1"></div>
+    <div class="glow-orb glow-2"></div>
+
+    <main class="main-container">
+        <!-- SVG 主视觉动画组 -->
+        <div class="svg-stage">
+            <svg class="gear-system" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#00f2fe" />
+                        <stop offset="100%" stop-color="#4facfe" />
+                    </linearGradient>
+                    <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#ff0844" />
+                        <stop offset="100%" stop-color="#ffb199" />
+                    </linearGradient>
+                </defs>
+                
+                <!-- 外围科技环 -->
+                <circle class="tech-ring outer-ring" cx="250" cy="250" r="220" />
+                <circle class="tech-ring inner-ring" cx="250" cy="250" r="180" />
+                
+                <!-- 主齿轮 -->
+                <g class="gear main-gear">
+                    <path d="M250,90 L260,110 L275,100 L280,120 L298,115 L298,136 L315,135 L310,155 L326,158 L318,177 L332,183 L320,200 L331,210 L316,224 L324,236 L306,247 L310,260 L291,268 L292,282 L272,286 L270,300 L250,300 L240,280 L225,290 L220,270 L202,275 L202,254 L185,255 L190,235 L174,232 L182,213 L168,207 L180,190 L169,180 L184,166 L176,154 L194,143 L190,130 L209,122 L208,108 L228,104 L230,90 Z" fill="url(#grad1)" />
+                    <circle cx="250" cy="250" r="60" class="gear-center" />
+                </g>
+                
+                <!-- 联动副齿轮 -->
+                <g class="gear sub-gear">
+                    <path d="M250,170 L256,182 L266,176 L270,188 L281,185 L281,198 L291,197 L288,209 L298,211 L293,222 L302,226 L294,236 L301,242 L291,250 L296,258 L284,264 L287,273 L274,277 L275,286 L262,288 L261,297 L250,297 L244,285 L234,291 L230,279 L219,282 L219,269 L209,270 L212,258 L202,256 L210,245 L198,239 L210,228 L199,222 L210,213 L202,205 L214,198 L210,190 L222,185 L221,176 L234,173 L235,164 Z" fill="url(#grad2)" />
+                    <circle cx="250" cy="250" r="35" class="gear-center" />
+                </g>
+
+                <!-- 动态仪表指针 -->
+                <line class="gauge-needle" x1="250" y1="250" x2="250" y2="90" />
+            </svg>
+        </div>
+
+        <!-- 文字与信息组 -->
+        <header class="content-header">
+            <span class="badge">
+                <svg class="icon-pulse" viewBox="0 0 24 24" width="16" height="16">
+                    <circle cx="12" cy="12" r="8" fill="#00f2fe" />
+                </svg>
+                SYSTEM UPDATE IN PROGRESS
+            </span>
+            <h1 class="title">新平台构建中</h1>
+            <p class="subtitle">我们正在重构底层架构，为您打造全新的数字交互体验。敬请期待！</p>
+        </header>
+
+        <!-- 倒计时/进度组件 -->
+        <section class="progress-section">
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill"></div>
+            </div>
+            <div class="progress-meta">
+                <span class="status-text">全系统部署进度</span>
+                <span class="percentage">87%</span>
+            </div>
+        </section>
+
+        <!-- 功能节点说明（使用纯 SVG 图标） -->
+        <section class="features-grid">
+            <div class="feature-card">
+                <svg class="feature-icon" viewBox="0 0 24 24">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h3>模块化架构</h3>
+                <p>全新的微前端设计，极速响应。</p>
+            </div>
+            <div class="feature-card">
+                <svg class="feature-icon" viewBox="0 0 24 24">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h3>端到端加密</h3>
+                <p>保障每一笔数据传输的极致安全。</p>
+            </div>
+            <div class="feature-card">
+                <svg class="feature-icon" viewBox="0 0 24 24">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h3>超高性能</h3>
+                <p>渲染速度提升 300%，毫秒级无感知加载。</p>
+            </div>
+        </section>
+
+        <!-- 订阅交互区域 -->
+        <section class="subscribe-box">
+            <form class="subscribe-form" onsubmit="return false;">
+                <div class="input-group">
+                    <svg class="input-icon" viewBox="0 0 24 24">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <polyline points="22,6 12,13 2,6" fill="none" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <input type="email" placeholder="输入您的邮箱以获取开线通知..." required>
+                    <button type="submit" class="btn-submit">
+                        <span>订阅通知（测试，无实际发送功能）</span>
+                        <svg class="btn-icon" viewBox="0 0 24 24">
+                            <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <polyline points="12 5 19 12 12 19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 NEXT-GEN PLATFORM. ALL RIGHTS RESERVED.</p>
+    </footer>
+
+</body>
+</html>
