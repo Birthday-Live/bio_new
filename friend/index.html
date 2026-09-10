@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>友链 - About WaterChisato</title>
+
+    <meta property="og:title" content="友链 - About WaterChisato">
+    <meta property="og:description" content="感谢每一位愿意和我交换链接的朋友～">
+    <meta property="og:type" content="website">
+
+    <!-- 字体 & 图标（与首页保持一致） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/harmonyos-sans@5/index.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/material-symbols@latest/outlined.css">
+
+    <!-- 主页样式（提供 MD3 变量与通用组件） -->
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- 友链页专属样式 -->
+    <link rel="stylesheet" href="friend.css">
+</head>
+
+<body class="friend-page no-bg-controls">
+
+    <div class="fallback-bg"></div>
+    <img id="bg-canvas-back" src="../assets/background.jpg" alt="" crossorigin="anonymous">
+    <img id="bg-canvas" src="../assets/background.jpg" alt="Background" crossorigin="anonymous">
+
+    <main class="container">
+
+        <header class="friend-header">
+            <img src="../assets/avatar.png" class="avatar" alt="User">
+            <p class="centered">Friends</p>
+            <h1>友情链接</h1>
+            <p class="bio">感谢每一位愿意和我交换链接的朋友～</p>
+
+            <div class="friend-toolbar">
+                <div class="friend-count" id="friend-count">加载中…</div>
+                <label class="friend-search">
+                    <span class="material-symbols-outlined">search</span>
+                    <input type="search" id="friend-search" placeholder="搜索名字 / 简介 / 域名" autocomplete="off">
+                </label>
+            </div>
+        </header>
+
+        <!-- 骨架屏：数据到位后由 JS 隐藏 -->
+        <section class="friend-grid friend-skeleton" id="friend-skeleton" aria-hidden="true">
+            <div class="friend-card">
+                <div class="sk-line sk-avatar"></div>
+                <div class="friend-main">
+                    <div class="sk-line sk-title"></div>
+                    <div class="sk-line sk-desc"></div>
+                </div>
+            </div>
+            <div class="friend-card">
+                <div class="sk-line sk-avatar"></div>
+                <div class="friend-main">
+                    <div class="sk-line sk-title"></div>
+                    <div class="sk-line sk-desc"></div>
+                </div>
+            </div>
+            <div class="friend-card">
+                <div class="sk-line sk-avatar"></div>
+                <div class="friend-main">
+                    <div class="sk-line sk-title"></div>
+                    <div class="sk-line sk-desc"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 友链卡片渲染区 -->
+        <section class="friend-grid" id="friend-grid" aria-live="polite"></section>
+
+        <footer class="site-footer">
+            <a href="../index.html" class="link-card">
+                <span class="material-symbols-outlined">arrow_back</span>
+                <div class="link-text">返回首页</div>
+                <span class="material-symbols-outlined">chevron_right</span>
+            </a>
+            <p class="friend-apply">
+                想交换友链？欢迎邮件找我：
+                <a href="mailto:plana@vip.qq.com">plana@vip.qq.com</a>
+            </p>
+        </footer>
+
+    </main>
+
+    <script src="friend.js"></script>
+
+</body>
+
+</html>
