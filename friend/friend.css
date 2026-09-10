@@ -277,6 +277,13 @@ body.friend-page .container {
 }
 
 /* ---------------- 骨架屏 ---------------- */
+/* .friend-grid 自带 display:grid，会盖掉浏览器默认的 [hidden]{display:none}，
+   所以必须显式补一条，否则隐藏不掉 */
+.friend-skeleton[hidden],
+.friend-grid[hidden] {
+    display: none !important;
+}
+
 .friend-skeleton .friend-card {
     animation: none;
     opacity: 1;
