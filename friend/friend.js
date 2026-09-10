@@ -142,7 +142,30 @@
 
     /* ---------------- 加载数据 ---------------- */
 
+    /* 骨架屏只在「加载真的慢」时才露面，避免网速快的时候闪一下很难看 */
+    var skTimer = null;
+
+    function showSkeleton() {
+        skTimer = setTimeout(function () {
+            if (skeleton) skeleton.hidden = false;
+        }, 250);
+    }
+
+    function hideSkeleton() {
+        if (skTimer) {
+            clearTimeout(skTimer);
+            skTimer = null;
+        }
+        if (skeleton) {
+            /* 直接移除，不依赖 hidden，彻底避免残留 */
+            if (skeleton.parentNode) skeleton.parentNode.removeChild(skeleton);
+            skeleton = null;
+        }
+    }
+
     function load() {
+        showSkeleton();
+
         fetch(DATA_FILE, { cache: 'no-cache' })
             .then(function (res) {
                 if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -153,11 +176,11 @@
                 var raw = Array.isArray(data) ? data : (data && (data.friends || data.list)) || [];
                 friends = sortByNum(raw.filter(function (f) { return f && typeof f === 'object'; }));
 
-                if (skeleton) skeleton.hidden = true;
+                hideSkeleton();
                 applyFilter();
             })
             .catch(function (err) {
-                if (skeleton) skeleton.hidden = true;
+                hideSkeleton();
                 if (countEl) countEl.textContent = '';
                 grid.innerHTML = noticeHTML(
                     'error',
