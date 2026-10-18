@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今日签到后台数据看板与排行榜</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'PingFang SC', 'Microsoft YaHei', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --bg-canvas: #f8fafc;
+            --card-bg: #ffffff;
+            --card-border: #e2e8f0;
+            --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+        }
+
+        html.dark {
+            --bg-canvas: #0b0f19;
+            --card-bg: #131b2e;
+            --card-border: #1e293b;
+            --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: #334155;
+        }
+
+        html.dark body {
+            color: #cbd5e1;
+        }
+
+        .glass-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            box-shadow: var(--card-shadow);
+        }
+
+        /* 领奖台卡片高定质感 */
+        .podium-gold {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, var(--card-bg) 70%);
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+        .podium-silver {
+            background: linear-gradient(135deg, rgba(148, 163, 184, 0.12) 0%, var(--card-bg) 70%);
+            border-color: rgba(148, 163, 184, 0.4);
+        }
+        .podium-bronze {
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, var(--card-bg) 70%);
+            border-color: rgba(234, 88, 12, 0.4);
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            80%, 100% { transform: scale(2.2); opacity: 0; }
+        }
+        .status-ping::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 9999px;
+            background-color: currentColor;
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        html.dark ::-webkit-scrollbar-thumb { background: #334155; }
+    </style>
+</head>
+<body class="min-h-screen selection:bg-indigo-500 selection:text-white pb-12">
+
+    <!-- Toast 提示框 -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <!-- 主容器：PC端宽屏适配 (max-w-7xl) -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
+
+        <!-- 顶部导航栏 -->
+        <header class="glass-card rounded-2xl p-4 sm:p-6 mb-6">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+                
+                <!-- 左侧：图标与标题 -->
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 shrink-0 text-2xl">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                                今日签到后台看板
+                            </h1>
+                            <span id="dataSourceBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                <span id="statusDot" class="relative flex h-2 w-2 text-emerald-500 status-ping">
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                </span>
+                                <span id="dataSourceText">正在连接...</span>
+                            </span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-shield-halved text-indigo-500"></i>
+                                <span>实时打卡监控中心</span>
+                            </span>
+                            <span id="lastSyncTime" class="flex items-center gap-1">
+                                <i class="fa-regular fa-clock"></i>
+                                <span>同步中...</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右侧：操作按钮组 (PC 与移动端完美自适应) -->
+                <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
+                    <button id="autoRefreshBtn" onclick="toggleAutoRefresh()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                        <i id="autoRefreshIcon" class="fa-solid fa-rotate text-slate-400"></i>
+                        <span>自动刷新</span>
+                        <span id="autoRefreshCountdown" class="px-1.5 py-0.5 text-[11px] font-mono rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">关闭</span>
+                    </button>
+
+                    <button id="refreshBtn" onclick="fetchLiveApiData(true)" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white shadow-md shadow-indigo-600/20 transition-all">
+                        <i id="refreshIcon" class="fa-solid fa-bolt"></i>
+                        <span>刷新数据</span>
+                    </button>
+
+                    <button onclick="copySummaryReport()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-indigo-500 text-slate-700 dark:text-slate-200 transition-all">
+                        <i class="fa-regular fa-paper-plane text-emerald-500"></i>
+                        <span>生成战报</span>
+                    </button>
+
+                    <button onclick="toggleTheme()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-indigo-500/30 bg-indigo-50 dark:bg-slate-900 hover:bg-indigo-100 dark:hover:bg-slate-800 text-indigo-700 dark:text-amber-300 transition-all" title="切换模式">
+                        <i id="themeIcon" class="fa-solid fa-moon"></i>
+                        <span id="themeText">极光夜色</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 接口无法访问报错横幅 -->
+        <div id="apiErrorBanner" class="hidden mb-6 rounded-2xl bg-rose-500/10 border border-rose-500/30 p-5 sm:p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-start gap-3.5">
+                    <div class="w-11 h-11 rounded-2xl bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 text-xl">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-extrabold text-rose-700 dark:text-rose-300">
+                            接口无法访问，未能获取今日签到数据
+                        </h2>
+                        <p id="apiErrorDetail" class="text-xs sm:text-sm text-rose-600/90 dark:text-rose-400/90 mt-1">
+                            请求失败：请检查网络连接或接口状态。
+                        </p>
+                    </div>
+                </div>
+                <button onclick="fetchLiveApiData(true)" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-rose-600 hover:bg-rose-500 text-white shadow-sm transition-all shrink-0">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>重新请求</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 顶部核心指标看板 (PC端4列，移动端1列) -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+            <!-- 1 -->
+            <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">今日总人数 (TOTAL)</span>
+                    <div class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-baseline gap-2">
+                    <span id="statTotal" class="text-3xl sm:text-4xl font-extrabold font-mono text-slate-900 dark:text-white">--</span>
+                    <span class="text-xs text-slate-400">人</span>
+                </div>
+                <p id="statTotalSub" class="mt-2 text-xs text-slate-500 dark:text-slate-400">列表共 <span class="font-mono font-semibold text-slate-700 dark:text-slate-200">--</span> 条记录</p>
+            </div>
+
+            <!-- 2 -->
+            <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">统计日期 (DATE)</span>
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                        <i class="fa-regular fa-calendar-check"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-baseline gap-2">
+                    <span id="statDate" class="text-2xl sm:text-3xl font-extrabold font-mono text-slate-900 dark:text-white">----/--/--</span>
+                </div>
+                <div class="mt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                    <span>状态码: <code id="statCode" class="font-mono font-bold text-slate-400">--</code></span>
+                    <span id="statWeekday" class="font-medium text-slate-600 dark:text-slate-300">--</span>
+                </div>
+            </div>
+
+            <!-- 3 -->
+            <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">今日状元 (#1)</span>
+                    <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 dark:text-amber-400 flex items-center justify-center">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center gap-2.5">
+                    <span id="statFirstUser" class="text-xl sm:text-2xl font-extrabold truncate text-slate-900 dark:text-white">--</span>
+                    <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-300 shrink-0">TOP 1</span>
+                </div>
+                <p class="mt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                    <span>签到 <span id="statFirstTime" class="font-mono font-semibold text-slate-700 dark:text-slate-200">--:--:--</span></span>
+                    <span id="statFirstDelta" class="text-amber-600 dark:text-amber-400 font-mono text-[11px]">--</span>
+                </p>
+            </div>
+
+            <!-- 4 -->
+            <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">最新签到 (LATEST)</span>
+                    <div class="w-9 h-9 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center gap-2.5">
+                    <span id="statLatestUser" class="text-xl sm:text-2xl font-extrabold truncate text-slate-900 dark:text-white">--</span>
+                    <span id="statLatestRank" class="px-2 py-0.5 text-[10px] font-mono font-semibold rounded-full bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 shrink-0">#--</span>
+                </div>
+                <p class="mt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                    <span>时间 <span id="statLatestTime" class="font-mono font-semibold text-slate-700 dark:text-slate-200">--:--:--</span></span>
+                    <span id="statPeakHour" class="text-cyan-600 dark:text-cyan-400 font-medium">--</span>
+                </p>
+            </div>
+        </section>
+
+        <!-- 中部大卡片区 (PC端完美左右分栏：7比5) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+            
+            <!-- 左侧：三甲领奖台 (7列) -->
+            <div class="lg:col-span-7 glass-card rounded-2xl p-6 flex flex-col justify-between">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-6">
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                            <i class="fa-solid fa-trophy text-amber-500"></i>
+                            <span>今日签到三甲荣誉榜</span>
+                        </h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">按打卡先后顺序排定前三名</p>
+                    </div>
+                    <span class="text-xs font-mono px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/20">
+                        <i class="fa-solid fa-bolt mr-1"></i>手速巅峰
+                    </span>
+                </div>
+
+                <div id="podiumContainer" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end my-auto">
+                    <!-- JS 动态渲染 -->
+                </div>
+            </div>
+
+            <!-- 右侧：24小时时段分布 (5列) -->
+            <div class="lg:col-span-5 glass-card rounded-2xl p-6 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between gap-2 mb-4">
+                        <div>
+                            <h2 class="text-base sm:text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                                <i class="fa-solid fa-chart-column text-indigo-500"></i>
+                                <span>签到时段活跃分布</span>
+                            </h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">24 小时各整点人数统计</p>
+                        </div>
+                        <span class="text-xs font-mono px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20">
+                            00:00 - 24:00
+                        </span>
+                    </div>
+
+                    <div id="periodPills" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
+                        <!-- JS 渲染 -->
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-end justify-between gap-1 h-36 pt-4 px-1 border-b border-slate-200 dark:border-slate-800" id="hourlyChart">
+                        <!-- JS 渲染 -->
+                    </div>
+                    <div class="flex justify-between text-[10px] font-mono text-slate-400 mt-2 px-0.5">
+                        <span>00:00</span>
+                        <span>06:00</span>
+                        <span>12:00</span>
+                        <span>18:00</span>
+                        <span>23:00</span>
+                    </div>
+                </div>
+
+                <div class="mt-4 px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2.5">
+                    <i class="fa-solid fa-lightbulb text-amber-500 text-sm shrink-0"></i>
+                    <span id="timeInsightText">正在分析签到时间规律...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部大表盘：完整排行榜 (PC/手机响应式表格) -->
+        <section class="glass-card rounded-2xl overflow-hidden">
+            
+            <div class="p-5 sm:p-6 border-b border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2.5">
+                        <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-list-ol text-indigo-500"></i>
+                            <span>今日签到完整排行榜单</span>
+                        </h2>
+                        <span id="filteredCountBadge" class="px-2.5 py-0.5 text-xs font-mono font-semibold rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20">
+                            0 人
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">支持按昵称搜索与时段筛选</p>
+                </div>
+
+                <!-- 搜索与筛选工具栏 -->
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <div class="relative flex-1 sm:flex-initial sm:w-60">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input 
+                            id="searchInput" 
+                            type="text" 
+                            oninput="handleFilterChange()"
+                            placeholder="搜索用户昵称..." 
+                            class="w-full pl-9 pr-8 py-2 rounded-xl text-xs sm:text-sm bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:outline-none focus:border-indigo-500 text-slate-800 dark:text-slate-100 placeholder-slate-400 transition-all"
+                        >
+                        <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                        </button>
+                    </div>
+
+                    <select id="periodFilter" onchange="handleFilterChange()" class="px-3 py-2 rounded-xl text-xs sm:text-sm bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <option value="ALL">全部时段</option>
+                        <option value="NIGHT">🌙 零点修仙 (00:00-05:59)</option>
+                        <option value="MORNING">🌅 早起达人 (06:00-08:59)</option>
+                        <option value="FORENOON">☀️ 元气上午 (09:00-11:59)</option>
+                        <option value="AFTERNOON">☕ 午后时光 (12:00-17:59)</option>
+                        <option value="EVENING">✨ 星夜打卡 (18:00-23:59)</option>
+                    </select>
+
+                    <button onclick="toggleSortOrder()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 transition-all">
+                        <i id="sortIcon" class="fa-solid fa-arrow-down-1-9 text-indigo-500"></i>
+                        <span id="sortText">正序</span>
+                    </button>
+
+                    <button onclick="exportCSV()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 transition-all" title="导出CSV">
+                        <i class="fa-solid fa-file-csv"></i>
+                        <span class="hidden sm:inline">CSV</span>
+                    </button>
+
+                    <button onclick="exportJSON()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 transition-all" title="导出JSON">
+                        <i class="fa-solid fa-file-code"></i>
+                        <span class="hidden sm:inline">JSON</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 表格容器：添加 min-w 确保在手机上横向平滑滚动，在PC上铺满 -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[640px]">
+                    <thead>
+                        <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                            <th class="py-3.5 px-6 w-24">排名</th>
+                            <th class="py-3.5 px-4">签到用户</th>
+                            <th class="py-3.5 px-4">时段称号</th>
+                            <th class="py-3.5 px-4">签到时间</th>
+                            <th class="py-3.5 px-6 text-right">距零点耗时</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardTableBody" class="divide-y divide-slate-200 dark:divide-slate-800 text-sm">
+                        <!-- JS 渲染 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="emptyState" class="hidden py-14 px-4 text-center">
+                <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400 text-2xl mb-3">
+                    <i class="fa-solid fa-user-slash"></i>
+                </div>
+                <p class="text-base font-semibold text-slate-700 dark:text-slate-200">未找到匹配的签到记录</p>
+                <p class="text-xs text-slate-400 mt-1">请尝试清空搜索关键词或切换筛选条件</p>
+                <button onclick="resetFilters()" class="mt-4 px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-500 transition-all">
+                    重置筛选条件
+                </button>
+            </div>
+
+            <div class="p-4 sm:px-6 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                <div class="flex items-center gap-2">
+                    <span class="inline-block w-2 h-2 rounded-full bg-indigo-500"></span>
+                    <span>接口数据实时渲染</span>
+                </div>
+                <div class="font-mono">
+                    tgqd.3211079898.workers.dev
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const API_ENDPOINT = 'https://tgqd.3211079898.workers.dev/api/today';
+
+        let currentPayload = null;
+        let lastApiError = null;
+        let sortAscending = true;
+        let autoRefreshTimer = null;
+        let countdownSeconds = 30;
+        let isAutoRefreshEnabled = false;
+
+        const AVATAR_GRADIENTS = [
+            'from-indigo-500 to-purple-600',
+            'from-rose-500 to-orange-500',
+            'from-emerald-500 to-teal-600',
+            'from-cyan-500 to-blue-600',
+            'from-fuchsia-500 to-pink-600',
+            'from-amber-500 to-red-500',
+            'from-violet-600 to-indigo-600',
+            'from-teal-400 to-emerald-600'
+        ];
+
+        function escapeHtml(str) {
+            return String(str ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function getWeekdayString(dateStr) {
+            if (!dateStr || typeof dateStr !== 'string') return '--';
+            const normalized = dateStr.trim().replace(/\//g, '-');
+            const parts = normalized.split('-');
+            if (parts.length !== 3) return '--';
+            const dt = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+            if (isNaN(dt.getTime())) return '--';
+            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            return weekdays[dt.getDay()];
+        }
+
+        function parseCheckinTime(rawTime) {
+            if (!rawTime || typeof rawTime !== 'string') {
+                return { datePart: '----/--/--', timePart: '--:--:--', hour: 0, minute: 0, second: 0, secondsFromMidnight: 0 };
+            }
+            const parts = rawTime.trim().split(/\s+/);
+            const datePart = parts[0] || '----/--/--';
+            const timePart = parts[1] || '00:00:00';
+            const [hStr = '0', mStr = '0', sStr = '0'] = timePart.split(':');
+            const hour = parseInt(hStr, 10) || 0;
+            const minute = parseInt(mStr, 10) || 0;
+            const second = parseInt(sStr, 10) || 0;
+            const secondsFromMidnight = hour * 3600 + minute * 60 + second;
+            return { datePart, timePart, hour, minute, second, secondsFromMidnight };
+        }
+
+        function formatSecondsFromMidnight(totalSec) {
+            if (typeof totalSec !== 'number' || isNaN(totalSec) || totalSec < 0) return '--';
+            const h = Math.floor(totalSec / 3600);
+            const m = Math.floor((totalSec % 3600) / 60);
+            const s = totalSec % 60;
+            if (h === 0 && m === 0) return `零点后 ${s}秒`;
+            if (h === 0) return `零点后 ${m}分${String(s).padStart(2, '0')}秒`;
+            return `+${h}小时${String(m).padStart(2, '0')}分`;
+        }
+
+        function getAvatarMeta(name, seedId) {
+            const cleanName = String(name || '匿名').trim();
+            const firstChar = Array.from(cleanName)[0] || '?';
+            const initials = firstChar.toUpperCase();
+            let hash = 0;
+            const seedStr = cleanName + String(seedId || '');
+            for (let i = 0; i < seedStr.length; i++) {
+                hash = (hash << 5) - hash + seedStr.charCodeAt(i);
+                hash |= 0;
+            }
+            const gradient = AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
+            return { initials, gradient };
+        }
+
+        function getPeriodBadgeInfo(hour) {
+            if (hour >= 0 && hour < 6) return { key: 'NIGHT', label: '🌙 零点守夜人', classes: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 whitespace-nowrap' };
+            if (hour >= 6 && hour < 9) return { key: 'MORNING', label: '🌅 早起晨曦鸟', classes: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 whitespace-nowrap' };
+            if (hour >= 9 && hour < 12) return { key: 'FORENOON', label: '☀️ 元气上午档', classes: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 whitespace-nowrap' };
+            if (hour >= 12 && hour < 18) return { key: 'AFTERNOON', label: '☕ 午后漫游者', classes: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20 whitespace-nowrap' };
+            return { key: 'EVENING', label: '✨ 星夜打卡族', classes: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 whitespace-nowrap' };
+        }
+
+        function copyText(text, label = '内容') {
+            try {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast(`已复制${label}`, 'success');
+            } catch (e) {
+                showToast('复制失败', 'error');
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const styles = {
+                success: 'border-emerald-500/30 bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400',
+                error: 'border-rose-500/30 bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400',
+                warning: 'border-amber-500/30 bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400',
+                info: 'border-indigo-500/30 bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400'
+            };
+            const icons = { success: 'fa-circle-check', error: 'fa-circle-exclamation', warning: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl border shadow-lg text-xs sm:text-sm font-medium ${styles[type] || styles.info}`;
+            toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info} text-base shrink-0"></i><span>${escapeHtml(message)}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 200);
+            }, 3000);
+        }
+
+        async function fetchLiveApiData(manualTrigger = false) {
+            const refreshIcon = document.getElementById('refreshIcon');
+            const errorBanner = document.getElementById('apiErrorBanner');
+            const errorDetail = document.getElementById('apiErrorDetail');
+
+            refreshIcon.className = 'fa-solid fa-circle-notch fa-spin';
+            updateSourceStatus('LOADING', '正在请求实时接口...');
+
+            let json = null;
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                const response = await fetch(API_ENDPOINT, { method: 'GET', headers: { 'Accept': 'application/json' }, signal: controller.signal });
+                clearTimeout(timeoutId);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                json = await response.json();
+                if (!json || !Array.isArray(json.data)) throw new Error('数据结构异常');
+            } catch (err) {
+                currentPayload = null;
+                const reasonText = err.name === 'AbortError' ? '请求超时（超过 8 秒未响应）。' : `无法访问实时签到接口（原因：${err.message || '网络异常'}）。`;
+                lastApiError = reasonText;
+                errorDetail.textContent = reasonText;
+                errorBanner.classList.remove('hidden');
+                renderErrorState(reasonText);
+                updateSourceStatus('ERROR', '接口无法访问');
+                document.getElementById('lastSyncTime').innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-500"></i><span class="text-rose-500">请求失败</span>`;
+                if (manualTrigger) showToast('无法访问签到接口', 'error');
+                refreshIcon.className = 'fa-solid fa-bolt';
+                return;
+            }
+
+            try {
+                currentPayload = json;
+                lastApiError = null;
+                errorBanner.classList.add('hidden');
+                renderDashboard();
+                updateSourceStatus('LIVE', '接口连接正常');
+                const nowStr = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+                document.getElementById('lastSyncTime').innerHTML = `<i class="fa-regular fa-clock"></i><span>同步于 ${nowStr}</span>`;
+                if (manualTrigger) showToast(`刷新成功，共 ${json.total ?? json.data.length} 人`, 'success');
+            } catch (renderErr) {
+                showToast(`渲染异常: ${renderErr.message}`, 'error');
+            } finally {
+                refreshIcon.className = 'fa-solid fa-bolt';
+            }
+        }
+
+        function updateSourceStatus(mode, text) {
+            const badge = document.getElementById('dataSourceBadge');
+            const statusText = document.getElementById('dataSourceText');
+            const statusDot = document.getElementById('statusDot');
+            statusText.textContent = text;
+            if (mode === 'LIVE') {
+                badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20';
+                statusDot.className = 'relative flex h-2 w-2 text-emerald-500 status-ping';
+            } else if (mode === 'LOADING') {
+                badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20';
+            } else {
+                badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20';
+            }
+        }
+
+        function renderErrorState(reasonText) {
+            document.getElementById('statTotal').textContent = '--';
+            document.getElementById('statDate').textContent = '无法获取';
+            document.getElementById('statCode').textContent = 'ERROR';
+            document.getElementById('statWeekday').textContent = '连接失败';
+            document.getElementById('statFirstUser').textContent = '无法获取';
+            document.getElementById('statLatestUser').textContent = '无法获取';
+            document.getElementById('podiumContainer').innerHTML = `<div class="col-span-3 py-8 text-center text-rose-500 text-xs">接口无法访问，无法加载三甲榜</div>`;
+            document.getElementById('periodPills').innerHTML = '';
+            document.getElementById('hourlyChart').innerHTML = `<div class="w-full h-full flex items-center justify-center text-xs text-rose-500">接口无法访问</div>`;
+            document.getElementById('leaderboardTableBody').innerHTML = '';
+            document.getElementById('filteredCountBadge').textContent = '0 人';
+            document.getElementById('emptyState').classList.remove('hidden');
+        }
+
+        function renderDashboard() {
+            if (!currentPayload) return;
+            const rawList = Array.isArray(currentPayload.data) ? currentPayload.data : [];
+            const sortedByRank = [...rawList].sort((a, b) => (a.rank || 9999) - (b.rank || 9999));
+
+            const totalCount = currentPayload.total ?? sortedByRank.length;
+            const dateStr = currentPayload.date || '--';
+            const codeVal = currentPayload.code ?? 0;
+
+            document.getElementById('statTotal').textContent = totalCount;
+            document.getElementById('statTotalSub').innerHTML = `列表共 <span class="font-mono font-semibold text-slate-700 dark:text-slate-200">${sortedByRank.length}</span> 条记录`;
+            document.getElementById('statDate').textContent = dateStr;
+            document.getElementById('statWeekday').textContent = getWeekdayString(dateStr);
+            document.getElementById('statCode').textContent = `code: ${codeVal}`;
+
+            if (sortedByRank.length > 0) {
+                const firstUser = sortedByRank[0];
+                const tMeta = parseCheckinTime(firstUser.time);
+                document.getElementById('statFirstUser').textContent = firstUser.name;
+                document.getElementById('statFirstTime').textContent = tMeta.timePart;
+                document.getElementById('statFirstDelta').textContent = formatSecondsFromMidnight(tMeta.secondsFromMidnight);
+
+                const latestUser = sortedByRank[sortedByRank.length - 1];
+                const lMeta = parseCheckinTime(latestUser.time);
+                document.getElementById('statLatestUser').textContent = latestUser.name;
+                document.getElementById('statLatestRank').textContent = `#${latestUser.rank}`;
+                document.getElementById('statLatestTime').textContent = lMeta.timePart;
+            }
+
+            renderPodium(sortedByRank.slice(0, 3));
+            renderHourlyDistribution(sortedByRank);
+            renderTable();
+        }
+
+        function renderPodium(topThree) {
+            const container = document.getElementById('podiumContainer');
+            if (topThree.length === 0) {
+                container.innerHTML = `<div class="col-span-3 py-10 text-center text-slate-400 text-xs">今日暂无签到用户上榜</div>`;
+                return;
+            }
+            const displayOrder = [{ item: topThree[1], rank: 2 }, { item: topThree[0], rank: 1 }, { item: topThree[2], rank: 3 }];
+            container.innerHTML = displayOrder.map(({ item, rank }) => {
+                if (!item) return `<div class="p-4 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 text-center text-xs text-slate-400">#${rank} 虚位以待</div>`;
+                const avatar = getAvatarMeta(item.name, item.userId);
+                const tMeta = parseCheckinTime(item.time);
+                const period = getPeriodBadgeInfo(tMeta.hour);
+                const cardClass = rank === 1 ? 'podium-gold' : (rank === 2 ? 'podium-silver' : 'podium-bronze');
+                const badgeText = rank === 1 ? '👑 榜首状元' : (rank === 2 ? '🥈 榜眼亚军' : '🥉 探花季军');
+
+                return `
+                    <div class="rounded-xl border ${cardClass} p-4 text-center flex flex-col items-center">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 mb-2">${badgeText}</span>
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br ${avatar.gradient} flex items-center justify-center text-white font-bold text-base mb-2 shadow-sm">
+                            ${escapeHtml(avatar.initials)}
+                        </div>
+                        <h3 class="font-bold text-sm text-slate-900 dark:text-white truncate max-w-full">${escapeHtml(item.name)}</h3>
+                        <span class="mt-1 px-2.5 py-0.5 rounded-full text-[10px] border ${period.classes}">${period.label}</span>
+                        <div class="w-full mt-2.5 pt-2 border-t border-slate-200 dark:border-slate-800 flex justify-between text-[11px] font-mono">
+                            <span class="text-slate-400">时间</span>
+                            <span class="text-slate-700 dark:text-amber-300 font-semibold">${tMeta.timePart}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderHourlyDistribution(list) {
+            const hourlyBuckets = Array.from({ length: 24 }, () => []);
+            const counts = { night: 0, morning: 0, forenoon: 0, afternoon: 0 };
+            list.forEach(item => {
+                const t = parseCheckinTime(item.time);
+                if (t.hour >= 0 && t.hour < 24) hourlyBuckets[t.hour].push(item);
+                if (t.hour < 6) counts.night++;
+                else if (t.hour < 9) counts.morning++;
+                else if (t.hour < 12) counts.forenoon++;
+                else counts.afternoon++;
+            });
+
+            document.getElementById('periodPills').innerHTML = [
+                { title: '凌晨 00-06', count: counts.night },
+                { title: '早间 06-09', count: counts.morning },
+                { title: '上午 09-12', count: counts.forenoon },
+                { title: '午后/晚间', count: counts.afternoon }
+            ].map(p => `
+                <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                    <span class="text-[11px] text-slate-400">${p.title}</span>
+                    <span class="text-xs font-mono font-bold text-slate-800 dark:text-white">${p.count}人</span>
+                </div>
+            `).join('');
+
+            let maxInHour = 0;
+            let peakHour = -1;
+            hourlyBuckets.forEach((arr, hr) => { if (arr.length > maxInHour) { maxInHour = arr.length; peakHour = hr; } });
+            document.getElementById('statPeakHour').textContent = peakHour >= 0 ? `高峰 ${String(peakHour).padStart(2, '0')}:00` : '暂无高峰';
+
+            document.getElementById('hourlyChart').innerHTML = hourlyBuckets.map((arr, hr) => {
+                const count = arr.length;
+                const h = count === 0 ? 6 : Math.max(18, Math.round((count / Math.max(maxInHour, 1)) * 100));
+                return `<div class="flex-1 h-full flex flex-col justify-end items-center"><div class="w-full max-w-[10px] rounded-t bg-indigo-500/80 hover:bg-indigo-400 transition-all" style="height: ${h}%" title="${hr}:00 · ${count}人"></div></div>`;
+            }).join('');
+
+            document.getElementById('timeInsightText').innerHTML = list.length > 0 && peakHour >= 0
+                ? `最早 <strong class="text-indigo-600 dark:text-indigo-400">${escapeHtml(list[0].name)}</strong>，高峰集中在 <strong class="font-mono text-indigo-600 dark:text-indigo-400">${String(peakHour).padStart(2, '0')}:00</strong>（${maxInHour}人）。`
+                : '今日暂无签到数据。';
+        }
+
+        function getFilteredAndSortedData() {
+            const query = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+            const periodFilter = document.getElementById('periodFilter').value;
+            const rawList = (currentPayload && Array.isArray(currentPayload.data)) ? currentPayload.data : [];
+
+            document.getElementById('clearSearchBtn').classList.toggle('hidden', query.length === 0);
+
+            const filtered = rawList.filter(item => {
+                const matchQuery = !query || String(item.name || '').toLowerCase().includes(query);
+                if (!matchQuery) return false;
+                if (periodFilter === 'ALL') return true;
+                return getPeriodBadgeInfo(parseCheckinTime(item.time).hour).key === periodFilter;
+            });
+
+            filtered.sort((a, b) => sortAscending ? (a.rank - b.rank) : (b.rank - a.rank));
+            return filtered;
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('leaderboardTableBody');
+            const emptyState = document.getElementById('emptyState');
+            const filtered = getFilteredAndSortedData();
+            document.getElementById('filteredCountBadge').textContent = `${filtered.length} 人`;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            tbody.innerHTML = filtered.map(item => {
+                const avatar = getAvatarMeta(item.name, item.userId);
+                const tMeta = parseCheckinTime(item.time);
+                const period = getPeriodBadgeInfo(tMeta.hour);
+                return `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                        <td class="py-3.5 px-6 font-mono font-bold text-xs">#${escapeHtml(item.rank)}</td>
+                        <td class="py-3.5 px-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-gradient-to-br ${avatar.gradient} flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm">${escapeHtml(avatar.initials)}</div>
+                                <span class="font-bold text-slate-900 dark:text-white">${escapeHtml(item.name)}</span>
+                            </div>
+                        </td>
+                        <td class="py-3.5 px-4"><span class="px-3 py-1 rounded-full text-xs border ${period.classes}">${period.label}</span></td>
+                        <td class="py-3.5 px-4 font-mono text-xs text-slate-700 dark:text-slate-300">${escapeHtml(tMeta.timePart)}</td>
+                        <td class="py-3.5 px-6 text-right font-mono text-xs text-slate-500">${formatSecondsFromMidnight(tMeta.secondsFromMidnight)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function handleFilterChange() { renderTable(); }
+        function clearSearch() { document.getElementById('searchInput').value = ''; handleFilterChange(); }
+        function resetFilters() { document.getElementById('searchInput').value = ''; document.getElementById('periodFilter').value = 'ALL'; sortAscending = true; renderTable(); }
+        function toggleSortOrder() { sortAscending = !sortAscending; document.getElementById('sortText').textContent = sortAscending ? '正序' : '倒序'; renderTable(); }
+
+        function toggleAutoRefresh() {
+            isAutoRefreshEnabled = !isAutoRefreshEnabled;
+            const icon = document.getElementById('autoRefreshIcon');
+            const badge = document.getElementById('autoRefreshCountdown');
+            if (isAutoRefreshEnabled) {
+                countdownSeconds = 30;
+                icon.className = 'fa-solid fa-rotate fa-spin text-emerald-500';
+                badge.textContent = `${countdownSeconds}s`;
+                autoRefreshTimer = setInterval(() => {
+                    countdownSeconds--;
+                    if (countdownSeconds <= 0) { fetchLiveApiData(false); countdownSeconds = 30; }
+                    badge.textContent = `${countdownSeconds}s`;
+                }, 1000);
+                showToast('已开启自动刷新', 'success');
+            } else {
+                clearInterval(autoRefreshTimer);
+                icon.className = 'fa-solid fa-rotate text-slate-400';
+                badge.textContent = '关闭';
+                showToast('已关闭自动刷新', 'info');
+            }
+        }
+
+        function exportCSV() {
+            if (!currentPayload) { showToast('暂无数据', 'error'); return; }
+            const rows = getFilteredAndSortedData();
+            const csv = ['排名,昵称,时间', ...rows.map(r => `${r.rank},"${r.name}","${r.time}"`)].join('\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `签到排行_${currentPayload.date}.csv`; a.click();
+            showToast('已导出 CSV', 'success');
+        }
+
+        function exportJSON() {
+            if (!currentPayload) { showToast('暂无数据', 'error'); return; }
+            const blob = new Blob([JSON.stringify(currentPayload, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `checkin_${currentPayload.date}.json`; a.click();
+            showToast('已导出 JSON', 'success');
+        }
+
+        function copySummaryReport() {
+            if (!currentPayload || !currentPayload.data) { showToast('暂无战报数据', 'error'); return; }
+            const list = [...currentPayload.data].sort((a, b) => a.rank - b.rank);
+            const lines = [`📊 【${currentPayload.date} 签到战报】`, `👥 今日签到：${currentPayload.total}人`, `------------------------`];
+            list.slice(0, 10).forEach(i => lines.push(`#${i.rank} ${i.name} - ⏰ ${parseCheckinTime(i.time).timePart}`));
+            copyText(lines.join('\n'), '群发战报');
+        }
+
+        function toggleTheme() {
+            const htmlEl = document.documentElement;
+            const isDark = htmlEl.classList.toggle('dark');
+            document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-moon text-amber-300' : 'fa-solid fa-sun text-amber-500';
+            document.getElementById('themeText').textContent = isDark ? '极光夜色' : '晴空日间';
+            try { localStorage.setItem('theme', isDark ? 'dark' : 'load' ? 'light' : 'dark'); } catch (e) {}
+        }
+
+        window.onload = function () {
+            try {
+                const saved = localStorage.getItem('theme');
+                if (saved === 'light') document.documentElement.classList.remove('dark');
+                else if (saved === 'dark') document.documentElement.classList.add('dark');
+            } catch (e) {}
+            const isDark = document.documentElement.classList.contains('dark');
+            document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-moon text-amber-300' : 'fa-solid fa-sun text-amber-500';
+            document.getElementById('themeText').textContent = isDark ? '极光夜色' : '晴空日间';
+            fetchLiveApiData(false);
+        };
+    </script>
+</body>
+</html>
