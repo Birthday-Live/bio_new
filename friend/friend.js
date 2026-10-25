@@ -1,5 +1,5 @@
 /* ============================================================
-   友链页脚本（friend.js）
+   友链页脚本（friend.js）— Claude 风格版
    读取同目录下的 friend.json → 按 num 升序排序 → 渲染卡片
    字段：num(排序) / title(标题) / avatar(头像) / desc(简介) / link(链接)
    可选：host（不写会自动从 link 里解析域名）
@@ -9,6 +9,15 @@
     'use strict';
 
     var DATA_FILE = './friend.json';
+
+    /* Claude 风格的占位头像配色（底色 / 文字色），按序号轮换 */
+    var AVATAR_PALETTE = [
+        { bg: '#F0E4DC', fg: '#C96442' }, /* Clay */
+        { bg: '#E6E9DF', fg: '#656B5C' }, /* Olive */
+        { bg: '#EFE8DC', fg: '#8A6A3E' }, /* Oat */
+        { bg: '#E4E6EA', fg: '#4A5A6A' }, /* Slate */
+        { bg: '#F3E1DB', fg: '#A9513A' }  /* Rose clay */
+    ];
 
     var grid     = document.getElementById('friend-grid');
     var skeleton = document.getElementById('friend-skeleton');
@@ -58,6 +67,16 @@
             .map(function (o) { return o.item; });
     }
 
+    /** 根据标题做稳定的哈希，使同一个站点每次都拿到同一种配色 */
+    function paletteFor(title) {
+        var s = String(title || '');
+        var h = 0;
+        for (var i = 0; i < s.length; i++) {
+            h = (h * 31 + s.charCodeAt(i)) >>> 0;
+        }
+        return AVATAR_PALETTE[h % AVATAR_PALETTE.length];
+    }
+
     /* ---------------- 渲染 ---------------- */
 
     function cardHTML(f, index) {
@@ -67,11 +86,12 @@
         var avatar  = f.avatar || f.icon || f.image || '';
         var host    = f.host || hostOf(url);
         var delay   = Math.min(index, 24) * 40;
+        var pal     = paletteFor(title);
 
         return '' +
             '<a class="friend-card" href="' + escapeHTML(url) + '" target="_blank" rel="noopener noreferrer"' +
                 ' title="' + escapeHTML(title) + '" style="animation-delay:' + delay + 'ms">' +
-                '<div class="friend-avatar">' +
+                '<div class="friend-avatar" style="background:' + pal.bg + ';color:' + pal.fg + '">' +
                     '<span class="friend-avatar-fallback">' + escapeHTML(firstChar(title)) + '</span>' +
                     (avatar
                         ? '<img src="' + escapeHTML(avatar) + '" alt="' + escapeHTML(title) + '" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">'
