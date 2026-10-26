@@ -1,178 +1,434 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.css">
+</head><body>
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>WaterChisato 主页</title>
+<style>
+/* Layout: one centered column, a quiet header, skill pills, and a stack of link rows. */
+:root {
+  --bg: #F5F3EE;
+  --surface: #FFFFFF;
+  --fg: #2B2A27;
+  --muted: #6F6B63;
+  --accent: #C2613F;
+  --accent-soft: #F3E3DA;
+  --line: #E6E2DA;
+  --pill: #ECE7DE;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #262624;
+    --surface: #30302D;
+    --fg: #ECEAE4;
+    --muted: #A9A49A;
+    --accent: #E08A69;
+    --accent-soft: #3D322C;
+    --line: #3E3D39;
+    --pill: #3A3935;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #262624;
+  --surface: #30302D;
+  --fg: #ECEAE4;
+  --muted: #A9A49A;
+  --accent: #E08A69;
+  --accent-soft: #3D322C;
+  --line: #3E3D39;
+  --pill: #3A3935;
+  color-scheme: dark;
+}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About WaterChisato</title>
-    
-    
- <meta property="og:title" content="About WaterChisato">
-<meta property="og:description" content="一个简简单单的介绍页，没必要有多余的内容~">
-<meta property="og:image" content="http://www.chisato.org.cn/assets/avatar.png">
-<meta property="og:url" content="http://www.chisato.org.cn/">
-<meta property="og:type" content="website">
- <meta itemprop="name" content="About WaterChisato">
-<meta itemprop="description" content="一个简简单单的介绍页，没必要有多余的内容~">
-<meta itemprop="image" content="http://www.chisato.org.cn/assets/avatar.png">
+*, *::before, *::after { box-sizing: border-box; }
 
-    <!-- 优先预加载首张背景图 -->
-    <link rel="preload" as="image" href="./assets/background.jpg" crossorigin="anonymous">
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px;
+  -webkit-font-smoothing: antialiased;
+}
 
-    <!-- 字体通过 jsDelivr CDN 加载（国内可访问） -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/harmonyos-sans@5/index.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/material-symbols@latest/outlined.css">
+.page {
+  max-width: 560px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
 
-    <!-- 本地样式优先加载 -->
-    <link rel="stylesheet" href="css/style.css">
-</head>
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+a:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
 
-<body>
+/* Header */
+.hero {
+  padding: 24px 4px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.greet {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+.name {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.2;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.bio {
+  margin: 8px 0 0;
+  font-size: 1.0625rem;
+  color: var(--fg);
+}
+.bio-sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
 
-    <div class="fallback-bg"></div>
-    <img id="bg-canvas-back" src="./assets/background.jpg" alt="" crossorigin="anonymous">
-    <img id="bg-canvas" src="./assets/background.jpg" alt="Background" crossorigin="anonymous">
+/* Sections */
+section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+h2 {
+  margin: 0;
+  padding-left: 4px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
 
-    <!-- 背景轮换控制 -->
-    <div class="bg-controls" id="bg-controls">
-        <button class="bg-arrow bg-prev" id="bg-prev" title="上一张">
-            <span class="material-symbols-outlined">chevron_left</span>
-        </button>
-        <div class="bg-dots" id="bg-dots"></div>
-        <button class="bg-arrow bg-next" id="bg-next" title="下一张">
-            <span class="material-symbols-outlined">chevron_right</span>
-        </button>
+/* Skill pills */
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 4px;
+  margin: 0;
+  list-style: none;
+}
+.pills li {
+  background: var(--pill);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.9375rem;
+}
+
+/* Link rows */
+.links {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.links li + li { border-top: 1px solid var(--line); }
+.links a {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 18px;
+  color: var(--fg);
+  min-width: 0;
+}
+.links a:hover { background: var(--accent-soft); text-decoration: none; }
+.links a:focus-visible { border-radius: 0; }
+.row-title {
+  font-weight: 550;
+  overflow-wrap: anywhere;
+}
+.row-note {
+  font-size: 0.875rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+/* Collapsible "more" */
+details {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  overflow: hidden;
+}
+summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 14px 18px;
+  font-weight: 550;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+summary::-webkit-details-marker { display: none; }
+summary::after {
+  content: "+";
+  color: var(--muted);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+details[open] summary::after { content: "−"; }
+details[open] summary { border-bottom: 1px solid var(--line); }
+details .links { border: 0; border-radius: 0; }
+
+/* Music player (APlayer / MetingJS) */
+.music-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  overflow: hidden;
+}
+.music-card meting-js { display: block; }
+
+/* Re-paint APlayer with the page palette so it follows light/dark mode. */
+.music-card .aplayer {
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  color: var(--fg);
+  font-family: inherit;
+}
+.music-card .aplayer .aplayer-pic { background-color: var(--accent-soft) !important; }
+.music-card .aplayer.aplayer-withlist .aplayer-info { border-bottom-color: var(--line); }
+.music-card .aplayer .aplayer-info .aplayer-music .aplayer-title {
+  color: var(--fg);
+  font-size: 0.9375rem;
+  font-weight: 550;
+}
+.music-card .aplayer .aplayer-info .aplayer-music .aplayer-author {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+.music-card .aplayer .aplayer-info .aplayer-controller .aplayer-time { color: var(--muted); }
+.music-card .aplayer .aplayer-info .aplayer-controller .aplayer-time .aplayer-icon path { fill: var(--muted); }
+.music-card .aplayer .aplayer-info .aplayer-controller .aplayer-time .aplayer-icon:hover path { fill: var(--fg); }
+.music-card .aplayer .aplayer-info .aplayer-controller .aplayer-bar-wrap .aplayer-bar { background: var(--line); }
+.music-card .aplayer .aplayer-info .aplayer-controller .aplayer-bar-wrap .aplayer-bar .aplayer-loaded { background: var(--muted); }
+.music-card .aplayer .aplayer-info .aplayer-controller .aplayer-volume-wrap .aplayer-volume-bar-wrap .aplayer-volume-bar { background: var(--line); }
+.music-card .aplayer .aplayer-info .aplayer-controller .aplayer-bar-wrap .aplayer-bar .aplayer-played,
+.music-card .aplayer .aplayer-info .aplayer-controller .aplayer-bar-wrap .aplayer-bar .aplayer-played .aplayer-thumb,
+.music-card .aplayer .aplayer-info .aplayer-controller .aplayer-volume-wrap .aplayer-volume-bar-wrap .aplayer-volume-bar .aplayer-volume,
+.music-card .aplayer .aplayer-list ol li .aplayer-list-cur { background: var(--accent) !important; }
+.music-card .aplayer .aplayer-lrc p { color: var(--muted); }
+.music-card .aplayer .aplayer-lrc p.aplayer-lrc-current { color: var(--fg); }
+.music-card .aplayer .aplayer-lrc:before { background: linear-gradient(180deg, var(--surface) 0, transparent); }
+.music-card .aplayer .aplayer-lrc:after { background: linear-gradient(180deg, transparent 0, var(--surface)); }
+.music-card .aplayer .aplayer-list ol li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--fg);
+  border-top-color: var(--line);
+}
+.music-card .aplayer .aplayer-list ol li .aplayer-list-index {
+  flex: none;
+  min-width: 1.4em;
+  margin-right: 0;
+  text-align: right;
+}
+.music-card .aplayer .aplayer-list ol li .aplayer-list-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.music-card .aplayer .aplayer-list ol li .aplayer-list-author {
+  float: none;
+  flex: 0 0 auto;
+  max-width: 45%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.music-card .aplayer .aplayer-list ol li:hover { background: var(--pill); }
+.music-card .aplayer .aplayer-list ol li.aplayer-list-light { background: var(--accent-soft); }
+.music-card .aplayer .aplayer-list ol li .aplayer-list-index,
+.music-card .aplayer .aplayer-list ol li .aplayer-list-author { color: var(--muted); }
+.music-card .aplayer .aplayer-list ol::-webkit-scrollbar-thumb { background-color: var(--line); }
+.music-card .aplayer .aplayer-list ol::-webkit-scrollbar-thumb:hover { background-color: var(--muted); }
+
+.music-source {
+  margin: 0;
+  padding: 10px 18px;
+  border-top: 1px solid var(--line);
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+.music-source a {
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.music-source a:hover { color: var(--accent); }
+
+/* Footer */
+footer {
+  padding: 0 4px 8px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+footer a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="hero">
+    <p class="greet">Hi, I am</p>
+    <h1 class="name">水喝千束</h1>
+    <p class="bio">一个热爱生活、喜欢分享的小可爱～</p>
+    <p class="bio-sub">写这个页面的人没有意识到时间过得有多残酷，希望未来的自己是一个值得骄傲的人。</p>
+  </header>
+
+  <section aria-labelledby="skills-title">
+    <h2 id="skills-title">Skills</h2>
+    <ul class="pills">
+      <li>Java</li>
+      <li>Python</li>
+      <li>JavaScript</li>
+      <li>HTML/CSS</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="links-title">
+    <h2 id="links-title">Links</h2>
+    <ul class="links">
+      <li>
+        <a href="https://github.com/waterchisato">
+          <span class="row-title">代码仓库 &amp; 开源项目</span>
+          <span class="row-note">github.com/waterchisato</span>
+        </a>
+      </li>
+      <li>
+        <a href="http://blog.waterchisato.top">
+          <span class="row-title">个人博客 &amp; 技术分享</span>
+          <span class="row-note">blog.waterchisato.top</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://chisato.org.cn/friend/index.html">
+          <span class="row-title">友链</span>
+          <span class="row-note">chisato.org.cn/friend</span>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="more-title">
+    <h2 id="more-title">More</h2>
+    <details>
+      <summary>展开更多链接</summary>
+      <ul class="links">
+        <li>
+          <a href="https://space.bilibili.com/1064027910">
+            <span class="row-title">B站（水喝千束）</span>
+            <span class="row-note">space.bilibili.com/1064027910</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://space.bilibili.com/3546718125689721">
+            <span class="row-title">B站（次放Studio）</span>
+            <span class="row-note">space.bilibili.com/3546718125689721</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://20110202.top/x">
+            <span class="row-title">内容导航站</span>
+            <span class="row-note">20110202.top/x</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://welcome.chisato.org.cn/">
+            <span class="row-title">原欢迎页（备份）</span>
+            <span class="row-note">welcome.chisato.org.cn</span>
+          </a>
+        </li>
+      </ul>
+    </details>
+  </section>
+
+  <section aria-labelledby="music-title">
+    <h2 id="music-title">Music</h2>
+    <div class="music-card">
+      <meting-js
+        server="netease"
+        type="playlist"
+        id="17998629681"
+        api="https://meting.x-leehe.ccwu.cc/api?server=:server&type=:type&id=:id&auth=:auth&r=:r"
+        list-folded="false"
+        list-max-height="260px"
+        preload="metadata"
+        mutex="true"
+      ></meting-js>
+      <p class="music-source">
+        正在加载中捏。。
+      </p>
     </div>
+  </section>
 
-    <main class="container">
-        <div class="profile-section">
-            <img src="./assets/avatar.png" class="avatar" alt="User">
+  <footer>
+    <a href="https://icp.gov.moe/?keyword=20269986">萌ICP备20269986号</a>
+    <a href="https://fakeicp.top/query.html?number=1202628">假ICP备1202628号</a>
+  </footer>
+</div>
 
-            <p class="centered">Hi, I am</p>
-            <h1>水喝千束</h1>
-            <p class="bio">
-                一个热爱生活、喜欢分享的小可爱～
-                <br>
-                对于时间流逝的残酷，今天的我仍没有察觉；对于将来某一天的我来说，我希望自己是值得骄傲的自己
-            </p>
-
-            <div class="tags">
-                <div class="tag">Java</div>
-                <div class="tag">Python</div>
-                <div class="tag">JavaScript</div>
-                <div class="tag">HTML/CSS</div>
-            </div>
-        </div>
-
-        <nav class="nav-section">
-            <!-- Telegram 风格链接预览卡片 - Github（内联元数据） -->
-            <a href="https://github.com/waterchisato" class="link-preview-card" target="_blank" rel="noopener"
-               data-preview-title="WaterChisato - Overview"
-               data-preview-desc="I only maintain my personal blog site. WaterChisato has 87 repositories available. Follow their code on GitHub."
-               data-preview-host="github.com"
-               data-preview-image="https://avatars.githubusercontent.com/u/213933094?v=4?s=400">
-                <div class="preview-url-top">github.com</div>
-                <div class="preview-body">
-                    <div class="preview-thumb">
-                        <img class="preview-favicon" src="" alt="">
-                        <span class="material-symbols-outlined preview-icon-fallback">code</span>
-                    </div>
-                    <div class="preview-info">
-                        <div class="preview-title">WaterChisato</div>
-                        <div class="preview-desc">代码仓库 &amp; 开源项目</div>
-                    </div>
-                </div>
-            </a>
-
-            <!-- Telegram 风格链接预览卡片 - Blog（内联元数据，无需 API 抓取） -->
-            <a href="http://blog.waterchisato.top" class="link-preview-card" target="_blank" rel="noopener"
-               data-preview-title="水喝千束のBlog"
-               data-preview-desc=""
-               data-preview-host="blog.waterchisato.top"
-               data-preview-image="https://blogger.googleusercontent.com/img/a/AVvXsEh0SCGY5WSgkcUNsP4ffwH8R4DkJuZHfm7XrMY9dUzbraBvzf_BZS43aWXk4gXrCm5Dqgt0gQG7cJKlIsws2Otgl1ghwDw9AKyVR69R3C3_nR3vnmPywR2SdsaECkCBHGzhYmiII3B0Q0m_jk_vhZMk1QtCc3sYRoAkxcEo9yjeJGk2x8AhVeXpjtaXzGI=w1200-h630-p-k-no-nu">
-                <div class="preview-url-top">blog.waterchisato.top</div>
-                <div class="preview-body">
-                    <div class="preview-thumb">
-                        <img class="preview-favicon" src="" alt="">
-                        <span class="material-symbols-outlined preview-icon-fallback">web</span>
-                    </div>
-                    <div class="preview-info">
-                        <div class="preview-title">Blog</div>
-                        <div class="preview-desc">个人博客 &amp; 技术分享</div>
-                    </div>
-                </div>
-            </a>
-            <a href="mailto:aaa@waterchisato.top" class="link-card">
-                <span class="material-symbols-outlined">mail</span>
-                <div class="link-text">邮箱</div>
-                <span class="material-symbols-outlined">chevron_right</span>
-            </a>
-            <a href="./friend/index.html" class="link-card">
-                <span class="material-symbols-outlined">diversity_3</span>
-                <div class="link-text">友链</div>
-                <span class="material-symbols-outlined">chevron_right</span>
-            </a>
-            <div class="dropdown">
-                <div class="link-card dropdown-trigger">
-                    <span class="material-symbols-outlined">scatter_plot</span>
-                    <div class="link-text">更多</div>
-                    <span class="material-symbols-outlined arrow">expand_more</span>
-                </div>
-                <div class="dropdown-content">
-                    <!--
-                    <a href="#" class="dropdown-item">
-                        <span class="material-symbols-outlined">sports_esports</span>
-                        <span>Steam不确定有没有哦</span>
-                    </a>
-                    -->
-                    <a href="https://space.bilibili.com/1064027910" class="dropdown-item">
-                        <span class="material-symbols-outlined">videogame_asset</span>
-                        <span>B站(水喝千束)</span>
-                    </a>
-                    <a href="https://space.bilibili.com/3546718125689721" class="dropdown-item">
-                        <span class="material-symbols-outlined">brush</span>
-                        <span>B站(次放Studio)</span>
-                    </a>
-                    <a href="https://20110202.top/x" class="dropdown-item">
-                        <span class="material-symbols-outlined">open_in_new</span>
-                        <span>内容导航站</span>
-                    </a>
-                    <a href="https://welcome.chisato.org.cn/" class="dropdown-item">
-                        <span class="material-symbols-outlined">contextual_token</span>
-                        <span>原欢迎页（备份）</span>
-                    </a>
-                </div>
-            </div>
-            <div class="dropdown music-dropdown">
-                <div class="link-card dropdown-trigger">
-                    <span class="material-symbols-outlined">music_note</span>
-                    <div class="link-text">音乐 (来源：网易云音乐)</div>
-                    <span class="material-symbols-outlined arrow">expand_more</span>
-                </div>
-                <div class="dropdown-content">
-                    <!-- require APlayer -->
-                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
-                    <script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script>
-                    <!-- require MetingJS -->
-                    <script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script>
-
-                    <meting-js server="netease" type="playlist" id="17998629681"
-                        api="https://meting.x-leehe.ccwu.cc/api?server=:server&type=:type&id=:id&auth=:auth&r=:r" list-folded="false">
-                    </meting-js>
-                    <!-- 在网易云音乐上创建一个歌单，然后将歌单ID填入id属性中 -->
-                </div>
-            </div>
-        </nav>
-        <footer class="site-footer">
-        <a href="https://icp.gov.moe/?keyword=20269986" target="_blank" class="icp-link">萌ICP备20269986号</a>
-        <a href="https://fakeicp.top/query.html?number=1202628" target="_blank" rel="noopener noreferrer" style="position: relative; display: inline-flex; align-items: center; height: 36px; padding: 0 10px; gap: 9px; overflow: hidden; border: 1px solid #3a3a3a; border-radius: 6px; background: linear-gradient(135deg, rgba(255,255,255,.045), transparent 60%), #242424; color: #f5f5f5; text-decoration: none; font-size: 12px; font-weight: 650; letter-spacing: .035em; font-family: 'JetBrains Mono', 'Noto Sans Mono', 'Microsoft YaHei', monospace; isolation: isolate; box-sizing: border-box; white-space: nowrap;"><span style="position: relative; z-index: 10; width: 3px; height: 18px; flex: none; border-radius: 2px; background: #fff100; box-shadow: 0 0 7px rgba(255,241,0,.35);"></span><span style="position: relative; z-index: 10; line-height: 1; white-space: nowrap;">假ICP备1202628号</span><span style="position: relative; z-index: 10; margin-left: 1px; color: #777; font-size: 14px; line-height: 1;">↗</span><span style="position: absolute; inset: 0; z-index: 1; pointer-events: none; -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,.04) 0%, rgba(0,0,0,.12) 18%, rgba(0,0,0,.35) 38%, rgba(0,0,0,.72) 58%, rgba(0,0,0,.94) 76%, #000 100%); mask-image: linear-gradient(90deg, rgba(0,0,0,.04) 0%, rgba(0,0,0,.12) 18%, rgba(0,0,0,.35) 38%, rgba(0,0,0,.72) 58%, rgba(0,0,0,.94) 76%, #000 100%);" aria-hidden="true"><svg viewBox="0 0 180 36" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="display: block; width: 100%; height: 100%; overflow: visible;"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><animateTransform attributeName="transform" type="rotate" from="0 126 46" to="360 126 46" dur="48s" repeatCount="indefinite"/><path d="M138.8 46.0C139.4 47.1,139.8 48.6,139.5 49.8C139.2 50.9,138.1 51.9,137.1 52.7C136.2 53.6,135.1 54.3,133.9 54.8C132.7 55.2,131.3 55.4,130.0 55.5C128.7 55.5,127.3 55.0,126.2 54.8C125.1 54.6,124.2 54.3,123.2 54.1C122.1 53.8,121.0 53.8,119.9 53.4C118.8 53.0,117.5 52.5,116.5 51.8C115.4 51.0,114.1 50.1,113.5 49.1C112.9 48.1,112.9 47.0,113.0 46.0C113.0 45.0,113.6 44.3,114.0 43.3C114.3 42.4,114.3 41.2,114.9 40.3C115.6 39.3,116.9 38.4,118.1 37.7C119.3 37.0,120.7 36.3,122.1 35.9C123.5 35.5,124.9 35.0,126.2 35.0C127.6 35.1,129.0 35.5,130.1 36.1C131.1 36.6,131.9 37.6,132.6 38.3C133.4 39.1,133.8 39.9,134.4 40.7C135.0 41.5,135.3 42.2,136.1 43.0C136.8 43.9,138.2 44.8,138.8 46.0Z" stroke="rgba(255,255,255,.035)" stroke-width=".8"/><path d="M147.0 45.8C147.4 47.6,147.7 49.6,147.0 51.4C146.4 53.2,144.7 54.9,143.1 56.4C141.6 57.9,139.7 59.5,137.8 60.4C135.9 61.3,133.7 61.7,131.8 61.8C129.8 61.8,128.0 60.8,126.3 60.4C124.5 60.0,123.1 59.7,121.3 59.3C119.5 59.0,117.5 58.8,115.5 58.1C113.4 57.5,110.9 56.6,109.1 55.5C107.3 54.3,105.7 52.6,104.8 51.0C103.9 49.4,103.7 47.5,103.9 45.8C104.0 44.1,105.0 42.5,105.9 41.0C106.7 39.5,107.5 37.8,108.9 36.7C110.3 35.5,112.4 34.8,114.2 34.0C116.1 33.2,118.1 32.6,120.1 31.8C122.1 31.1,124.3 29.9,126.4 29.6C128.5 29.3,130.9 29.4,132.7 30.0C134.6 30.5,136.2 31.7,137.6 32.8C139.1 33.9,140.3 35.2,141.4 36.5C142.6 37.9,143.5 39.4,144.4 40.9C145.3 42.5,146.5 44.1,147.0 45.8Z" stroke="rgba(255,255,255,.045)" stroke-width=".85"/><path d="M155.8 45.7C155.6 48.0,155.1 50.3,153.9 52.5C152.6 54.7,150.5 57.0,148.4 59.2C146.3 61.4,143.9 64.0,141.4 65.7C139.0 67.4,136.1 68.8,133.6 69.1C131.1 69.5,128.7 68.3,126.3 67.8C123.8 67.2,121.7 66.5,118.9 65.9C116.2 65.2,112.6 64.9,109.8 63.8C106.9 62.7,103.9 61.1,101.6 59.3C99.3 57.6,97.1 55.6,95.9 53.3C94.7 51.0,94.0 48.0,94.3 45.4C94.6 42.9,96.1 39.9,97.6 37.8C99.1 35.7,101.3 34.1,103.4 32.8C105.5 31.5,108.0 30.9,110.4 30.0C112.8 29.1,115.1 28.4,117.8 27.3C120.5 26.2,123.5 24.3,126.5 23.6C129.5 22.9,133.1 22.7,135.9 23.2C138.7 23.7,141.0 25.1,143.4 26.5C145.8 27.9,148.3 29.6,150.3 31.7C152.2 33.7,154.1 36.4,155.1 38.7C156.0 41.1,156.0 43.4,155.8 45.7Z" stroke="rgba(255,255,255,.06)" stroke-width=".9"/><path d="M163.1 45.2C162.4 48.1,161.5 50.6,160.1 53.6C158.7 56.6,157.0 60.2,154.7 63.2C152.3 66.2,149.1 69.3,146.0 71.6C143.0 73.8,139.6 75.9,136.3 76.7C133.1 77.6,129.8 77.1,126.2 76.8C122.7 76.5,118.8 76.0,114.9 75.0C111.0 74.0,106.4 72.7,102.9 70.8C99.5 69.0,96.5 66.4,94.1 63.9C91.6 61.3,89.4 58.8,88.0 55.7C86.6 52.5,85.1 48.5,85.5 45.1C85.9 41.6,88.3 37.8,90.3 35.0C92.3 32.2,94.9 29.9,97.5 28.1C100.0 26.3,102.8 25.4,105.7 24.1C108.6 22.9,111.5 21.7,114.9 20.5C118.3 19.3,122.2 17.6,126.2 16.9C130.1 16.2,134.6 15.8,138.7 16.3C142.7 16.8,146.7 18.1,150.3 19.8C153.9 21.5,157.7 23.8,160.0 26.6C162.4 29.3,163.7 33.0,164.2 36.1C164.7 39.2,163.8 42.2,163.1 45.2Z" stroke="rgba(255,255,255,.075)" stroke-width=".95"/><path d="M170.5 44.8C169.7 48.6,169.4 52.4,167.9 56.1C166.5 59.9,164.7 64.1,162.1 67.6C159.5 71.0,155.9 74.0,152.3 76.7C148.6 79.4,144.9 82.1,140.4 83.9C135.9 85.8,130.4 87.4,125.3 87.7C120.1 88.0,114.4 87.1,109.6 85.6C104.7 84.2,100.0 81.7,96.4 78.9C92.8 76.1,90.5 72.4,87.9 68.9C85.3 65.4,82.5 62.0,80.9 58.0C79.2 54.0,77.7 49.4,77.9 45.1C78.2 40.8,80.4 36.1,82.3 32.3C84.3 28.5,87.1 25.2,89.9 22.1C92.6 19.0,95.5 16.0,99.1 13.9C102.7 11.9,107.0 10.9,111.4 10.0C115.7 9.2,120.1 8.9,125.1 8.7C130.1 8.6,135.9 8.2,141.4 9.0C146.8 9.7,152.9 11.2,157.8 13.3C162.7 15.5,168.1 18.5,170.7 21.9C173.3 25.2,173.2 29.6,173.2 33.5C173.2 37.3,171.4 41.0,170.5 44.8Z" stroke="rgba(255,255,255,.095)" stroke-width="1"/><path d="M180.3 45.6C179.6 50.3,179.3 55.4,177.8 59.8C176.3 64.2,174.3 68.3,171.4 71.9C168.5 75.4,164.8 78.0,160.4 81.3C156.1 84.5,151.3 88.7,145.2 91.4C139.2 94.2,130.9 97.2,124.1 97.9C117.4 98.6,110.3 97.4,104.6 95.7C98.9 94.0,94.1 91.0,90.1 87.5C86.0 84.0,83.2 79.2,80.3 74.7C77.4 70.1,74.5 65.2,72.7 60.3C70.9 55.4,69.4 50.3,69.5 45.4C69.6 40.5,71.4 35.6,73.3 30.8C75.1 26.0,77.5 21.1,80.5 16.7C83.5 12.3,87.0 7.4,91.4 4.5C95.8 1.6,101.3 0.3,106.7 -0.7C112.1 -1.6,117.6 -1.3,123.8 -1.0C129.9 -0.7,136.9 -0.2,143.6 1.2C150.3 2.6,158.3 4.7,164.0 7.5C169.8 10.2,175.2 13.8,178.2 17.8C181.2 21.8,181.9 26.6,182.3 31.2C182.6 35.9,181.0 40.8,180.3 45.6Z" stroke="rgba(255,255,255,.12)" stroke-width="1"/><path d="M194.2 47.4C194.5 53.4,193.8 59.7,192.2 64.9C190.6 70.0,188.2 74.2,184.6 78.4C181.1 82.6,176.6 86.2,170.8 90.1C164.9 94.0,157.4 98.9,149.5 101.8C141.5 104.6,130.9 106.9,123.0 107.2C115.0 107.5,108.0 105.5,101.7 103.4C95.5 101.4,90.3 98.7,85.4 94.9C80.5 91.2,75.7 86.0,72.2 80.8C68.8 75.6,66.8 69.4,64.8 63.8C62.8 58.2,61.0 53.1,60.1 47.2C59.3 41.4,58.6 35.3,59.8 28.8C60.9 22.4,63.1 14.8,66.8 8.6C70.5 2.4,76.1 -4.3,82.0 -8.1C88.0 -11.9,95.4 -13.5,102.4 -14.4C109.3 -15.3,116.2 -14.3,123.8 -13.5C131.5 -12.7,140.7 -12.0,148.2 -9.6C155.7 -7.2,163.0 -2.9,168.6 1.0C174.2 4.8,178.2 9.1,181.9 13.7C185.5 18.3,188.4 23.0,190.4 28.6C192.5 34.3,193.9 41.3,194.2 47.4Z" stroke="rgba(255,255,255,.105)" stroke-width=".95"/><path d="M211.8 48.9C212.5 56.1,211.4 63.5,209.3 69.7C207.1 76.0,203.8 81.3,198.9 86.4C194.0 91.5,187.5 96.5,179.9 100.6C172.4 104.6,163.0 108.6,153.7 110.9C144.5 113.1,133.7 114.3,124.5 114.2C115.4 114.1,106.7 112.4,98.8 110.4C91.0 108.4,83.7 106.0,77.3 102.1C70.9 98.2,64.5 92.7,60.3 87.0C56.0 81.3,54.4 74.4,51.8 67.9C49.2 61.4,46.0 55.1,44.6 48.0C43.1 41.0,41.6 32.9,43.1 25.6C44.5 18.2,48.5 10.3,53.5 3.7C58.5 -2.9,65.6 -9.8,73.0 -14.1C80.4 -18.5,89.4 -20.7,97.9 -22.4C106.4 -24.1,115.6 -24.8,124.2 -24.3C132.9 -23.8,142.0 -22.3,149.8 -19.4C157.5 -16.5,164.3 -11.3,170.6 -6.7C177.0 -2.1,182.4 2.7,188.1 8.3C193.8 13.8,200.9 19.8,204.9 26.6C208.8 33.3,211.0 41.7,211.8 48.9Z" stroke="rgba(255,255,255,.075)" stroke-width=".9"/></g></svg></span></a>
-        </footer>
-
-    </main>
-    
-
-    <script src="js/script.js"></script>
-
-</body>
-
-</html>
+<!-- APlayer must load before MetingJS: MetingJS initialises on connect and needs window.APlayer. -->
+<script src="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.js"></script>
+<script>
+// 网易云歌单接口返回的封面是原始大图（单张可达 2.5MB），这里换成 180px 缩略图再交给播放器。
+// 如果以后更换 Meting API 域名，删掉这段即可，播放器仍然可用。
+(function () {
+  var nativeFetch = window.fetch;
+  if (!nativeFetch) return;
+  window.fetch = function (input) {
+    var url = typeof input === "string" ? input : (input && input.url) || "";
+    var request = nativeFetch.apply(this, arguments);
+    if (url.indexOf("meting.x-leehe.ccwu.cc") === -1) return request;
+    return request.then(function (response) {
+      return response.clone().json().then(function (data) {
+        if (!Array.isArray(data)) return response;
+        data.forEach(function (item) {
+          if (item && typeof item.pic === "string" && item.pic.indexOf("music.126.net") !== -1) {
+            item.pic += (item.pic.indexOf("?") === -1 ? "?" : "&") + "param=180y180";
+          }
+        });
+        return new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } });
+      }).catch(function () { return response; });
+    });
+  };
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/meting@2.0.1/dist/Meting.min.js"></script>
+</body></html>
