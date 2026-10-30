@@ -10,15 +10,17 @@
     <meta property="og:description" content="感谢每一位愿意和我交换链接的朋友～">
     <meta property="og:type" content="website">
 
-    <!-- 字体 & 图标 -->
+    <!-- 首帧前标记 JS 可用，避免禁用 JS 时页面永远不可见 -->
+    <script>document.documentElement.classList.add('js');</script>
+
+    <!-- 字体 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&display=swap">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/harmonyos-sans@5/index.css">
+    <!-- 保留图标字体：friend.js 渲染卡片时使用 material-symbols-outlined -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/material-symbols@latest/outlined.css">
 
-    
-    <!-- Claude 风格主题 -->
     <style>
         :root {
             /* Claude 配色：Pampas / Ivory / Oat / Clay / Slate / Stone */
@@ -32,6 +34,8 @@
             --cl-accent-soft: #F0E4DC;
             --cl-serif: "Lora", Georgia, "Noto Serif SC", "Songti SC", serif;
             --cl-sans: "HarmonyOS Sans SC", "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+            --cl-glass: rgba(250, 249, 245, .55);
+            --cl-glass-border: rgba(255, 255, 255, .55);
         }
 
         @media (prefers-color-scheme: dark) {
@@ -44,31 +48,88 @@
                 --cl-faint: #87867F;
                 --cl-accent: #D97757;
                 --cl-accent-soft: #3A2E28;
+                --cl-glass: rgba(48, 48, 46, .45);
+                --cl-glass-border: rgba(255, 255, 255, .12);
             }
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         html,
         body {
-            background: var(--cl-bg) !important;
+            margin: 0;
+            background: var(--cl-bg);
             color: var(--cl-ink);
             font-family: var(--cl-sans);
             -webkit-font-smoothing: antialiased;
         }
 
-        /* 隐藏原来的背景图层 */
-        .fallback-bg,
-        #bg-canvas,
-        #bg-canvas-back {
-            display: none !important;
+        /* ================= 进出场动画 ================= */
+        html.js body.friend-page {
+            opacity: 0;
+        }
+
+        html.js body.friend-page.is-ready {
+            opacity: 1;
+            transition: opacity .5s ease;
+        }
+
+        html.js body.friend-page.is-leaving {
+            opacity: 0;
+            transition: opacity .26s ease;
+        }
+
+        html.js body.friend-page.is-leaving .container {
+            transform: translateY(-10px);
+            transition: transform .26s ease;
         }
 
         .friend-page .container {
             max-width: 880px;
             margin: 0 auto;
-            padding: 56px 20px 48px;
+            padding: 64px 20px 48px;
         }
 
-        /* ---------- 头部 ---------- */
+        /* ================= 磨砂返回键 ================= */
+        .back-fab {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 50;
+            display: grid;
+            place-items: center;
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            border-radius: 50%;
+            color: var(--cl-ink);
+            text-decoration: none;
+            background: var(--cl-glass);
+            border: 1px solid var(--cl-glass-border);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            backdrop-filter: blur(16px) saturate(180%);
+            box-shadow: 0 4px 18px rgba(20, 20, 19, .08), inset 0 1px 0 rgba(255, 255, 255, .28);
+            transition: transform .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease;
+        }
+
+        .back-fab:hover {
+            color: var(--cl-accent);
+            border-color: var(--cl-accent);
+            transform: translateX(-2px);
+            box-shadow: 0 8px 24px rgba(20, 20, 19, .12), inset 0 1px 0 rgba(255, 255, 255, .3);
+        }
+
+        .back-fab:active {
+            transform: translateX(-1px) scale(.96);
+        }
+
+        .back-fab svg {
+            display: block;
+        }
+
+        /* ================= 头部 ================= */
         .friend-header {
             text-align: center;
             margin-bottom: 40px;
@@ -107,7 +168,7 @@
             color: var(--cl-muted);
         }
 
-        /* ---------- 工具栏 ---------- */
+        /* ================= 工具栏 ================= */
         .friend-toolbar {
             display: flex;
             align-items: center;
@@ -145,8 +206,8 @@
             box-shadow: 0 0 0 3px var(--cl-accent-soft);
         }
 
-        .friend-search .material-symbols-outlined {
-            font-size: 20px;
+        .friend-search > svg {
+            flex: 0 0 auto;
             color: var(--cl-faint);
         }
 
@@ -165,7 +226,7 @@
             color: var(--cl-faint);
         }
 
-        /* ---------- 卡片网格 ---------- */
+        /* ================= 卡片网格 ================= */
         .friend-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -173,6 +234,10 @@
             margin-top: 32px;
         }
 
+        /*
+         * 卡片入场：friend.js 会给每个卡片写入 inline 的 animation-delay，
+         * 这里只定义动画本体，delay 交给 JS 控制，互不打架。
+         */
         .friend-card {
             position: relative;
             display: flex;
@@ -184,7 +249,7 @@
             border-radius: 16px;
             color: inherit;
             text-decoration: none;
-            animation: cl-rise .4s ease both;
+            animation: cl-rise .45s cubic-bezier(.22, .8, .28, 1) both;
             transition: transform .2s, border-color .2s, box-shadow .2s;
         }
 
@@ -195,8 +260,15 @@
         }
 
         @keyframes cl-rise {
-            from { opacity: 0; transform: translateY(8px); }
-            to   { opacity: 1; transform: none; }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
         }
 
         .friend-avatar {
@@ -273,7 +345,7 @@
             transform: translate(2px, -2px);
         }
 
-        /* ---------- 提示 / 空状态 ---------- */
+        /* ================= 提示 / 空状态 ================= */
         .friend-notice {
             grid-column: 1 / -1;
             display: flex;
@@ -300,7 +372,7 @@
             border-radius: 6px;
         }
 
-        /* ---------- 骨架屏 ---------- */
+        /* ================= 骨架屏 ================= */
         .friend-skeleton .friend-card {
             pointer-events: none;
             animation: none;
@@ -314,8 +386,13 @@
         }
 
         @keyframes cl-shimmer {
-            from { background-position: 200% 0; }
-            to   { background-position: -200% 0; }
+            from {
+                background-position: 200% 0;
+            }
+
+            to {
+                background-position: -200% 0;
+            }
         }
 
         .sk-avatar {
@@ -336,62 +413,85 @@
             height: 12px;
         }
 
-        /* ---------- 页脚 ---------- */
+        /* ================= 页脚 ================= */
         .site-footer {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 20px;
+            gap: 18px;
             margin-top: 56px;
             text-align: center;
         }
 
-        .site-footer .link-card {
-            display: flex;
+        /* 磨砂「添加友链」按钮 */
+        .apply-card {
+            display: inline-flex;
             align-items: center;
             gap: 10px;
-            padding: 12px 20px;
-            color: var(--cl-ink);
-            text-decoration: none;
-            background: var(--cl-surface);
-            border: 1px solid var(--cl-border);
-            border-radius: 999px;
-            transition: border-color .2s, color .2s;
-        }
-
-        .site-footer .link-card:hover {
-            color: var(--cl-accent);
-            border-color: var(--cl-accent);
-        }
-
-        .site-footer .link-text {
+            padding: 12px 22px;
             font-size: 15px;
             font-weight: 500;
-        }
-
-        .friend-apply {
-            font-size: 14px;
-            color: var(--cl-muted);
-        }
-
-        .friend-apply a {
-            color: var(--cl-accent);
+            color: var(--cl-ink);
             text-decoration: none;
-            border-bottom: 1px solid currentColor;
+            background: var(--cl-glass);
+            border: 1px solid var(--cl-glass-border);
+            border-radius: 999px;
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            backdrop-filter: blur(16px) saturate(180%);
+            box-shadow: 0 4px 18px rgba(20, 20, 19, .07), inset 0 1px 0 rgba(255, 255, 255, .28);
+            transition: transform .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease;
+        }
+
+        .apply-card:hover {
+            color: var(--cl-accent);
+            border-color: var(--cl-accent);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(20, 20, 19, .12), inset 0 1px 0 rgba(255, 255, 255, .3);
+        }
+
+        .apply-card:active {
+            transform: translateY(0) scale(.98);
+        }
+
+        .apply-card svg {
+            display: block;
+        }
+
+        .apply-card .apply-arrow {
+            transition: transform .2s ease;
+        }
+
+        .apply-card:hover .apply-arrow {
+            transform: translateX(3px);
+        }
+
+        .friend-tip {
+            margin: 0;
+            font-size: 13px;
+            color: var(--cl-faint);
         }
 
         @media (max-width: 600px) {
             .friend-header h1 {
                 font-size: 32px;
             }
+
+            .friend-page .container {
+                padding-top: 76px;
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {
+
             *,
             *::before,
             *::after {
                 animation: none !important;
                 transition: none !important;
+            }
+
+            html.js body.friend-page {
+                opacity: 1;
             }
         }
     </style>
@@ -399,9 +499,13 @@
 
 <body class="friend-page no-bg-controls">
 
-    <div class="fallback-bg"></div>
-    <img id="bg-canvas-back" src="../assets/background.jpg" alt="" crossorigin="anonymous">
-    <img id="bg-canvas" src="../assets/background.jpg" alt="Background" crossorigin="anonymous">
+    <!-- 磨砂返回键：点击回 https://chisato.org.cn -->
+    <a class="back-fab" href="https://chisato.org.cn" aria-label="返回首页" title="返回首页">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14.5 5 7.5 12l7 7" />
+        </svg>
+    </a>
 
     <main class="container">
 
@@ -414,13 +518,17 @@
             <div class="friend-toolbar">
                 <div class="friend-count" id="friend-count">加载中…</div>
                 <label class="friend-search">
-                    <span class="material-symbols-outlined">search</span>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                        <circle cx="11" cy="11" r="6.5" />
+                        <path d="m16.2 16.2 3.8 3.8" />
+                    </svg>
                     <input type="search" id="friend-search" placeholder="搜索名字 / 简介 / 域名" autocomplete="off">
                 </label>
             </div>
         </header>
 
-        <!-- 骨架屏：默认隐藏，只有加载超过 250ms 才由 JS 显示；数据到位后整块移除 -->
+        <!-- 骨架屏：friend.js 会在加载慢时取消 hidden，数据到位后整块移除 -->
         <section class="friend-grid friend-skeleton" id="friend-skeleton" aria-hidden="true" hidden>
             <div class="friend-card">
                 <div class="sk-line sk-avatar"></div>
@@ -445,27 +553,83 @@
             </div>
         </section>
 
-        <!-- 友链卡片渲染区 -->
+        <!-- 友链卡片渲染区：friend.js 的 paint() 会往这里写 innerHTML -->
         <section class="friend-grid" id="friend-grid" aria-live="polite"></section>
 
         <footer class="site-footer">
-            <a href="../index.html" class="link-card">
-                <span class="material-symbols-outlined">arrow_back</span>
-                <div class="link-text">返回首页</div>
-                <span class="material-symbols-outlined">chevron_right</span>
+            <!-- 原邮件文字改为「添加友链」磨砂按钮 -->
+            <a class="apply-card" href="https://chisato.org.cn/friend/apply">
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"
+                    stroke-linecap="round" aria-hidden="true">
+                    <path d="M12 5.5v13M5.5 12h13" />
+                </svg>
+                <span>添加友链</span>
+                <svg class="apply-arrow" viewBox="0 0 24 24" width="16" height="16" fill="none"
+                    stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                    aria-hidden="true">
+                    <path d="M5 12h13M12.5 6.5 19 12l-6.5 5.5" />
+                </svg>
             </a>
-            <p class="friend-apply">
-                想交换友链？欢迎邮件找我：
-                <a href="/cdn-cgi/l/email-protection#7a1b1b1b3a0d1b0e1f08191213091b0e15540e150a"><span class="__cf_email__" data-cfemail="b6d7d7d7f6c1d7c2d3c4d5dedfc5d7c2d998c2d9c6">[email&#160;protected]</span></a>
-            </p>
+            <p class="friend-tip">欢迎每一位朋友～</p>
         </footer>
 
     </main>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
     <script src="friend.js"></script>
 
-    <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"392b870dcdec43438351c376f9d1bf82","r":1,"spa":2}' crossorigin="anonymous"></script>
+    <script>
+        (function () {
+            var body = document.body;
+            var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            /* ---------- 1. 进入动画 ---------- */
+            requestAnimationFrame(function () {
+                requestAnimationFrame(function () {
+                    body.classList.add('is-ready');
+                });
+            });
+
+            /* ---------- 2. 离开动画 ----------
+             * 只拦截「当前页跳转」的链接；
+             * friend.js 渲染的卡片带 target="_blank"，会自然放过，不影响新标签打开。
+             */
+            var leaving = false;
+
+            function leaveTo(href) {
+                if (leaving) return;
+                leaving = true;
+                body.classList.add('is-leaving');
+                setTimeout(function () {
+                    window.location.href = href;
+                }, reduceMotion ? 0 : 260);
+            }
+
+            document.addEventListener('click', function (e) {
+                if (e.defaultPrevented || e.button !== 0) return;
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+                var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+                if (!a) return;
+
+                var href = a.getAttribute('href');
+                if (!href || href.charAt(0) === '#' || /^javascript:/i.test(href)) return;
+                if (a.target && a.target !== '_self') return;
+                if (a.hasAttribute('download')) return;
+
+                e.preventDefault();
+                leaveTo(a.href);
+            }, false);
+
+            /* ---------- 3. 浏览器后退缓存时恢复状态 ---------- */
+            window.addEventListener('pageshow', function (e) {
+                if (e.persisted) {
+                    leaving = false;
+                    body.classList.remove('is-leaving');
+                    body.classList.add('is-ready');
+                }
+            });
+        })();
+    </script>
 </body>
 
 </html>
