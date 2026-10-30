@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>网页互助 · 申请与查询</title>
+<title>友链申请 · 提交与查询</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Inter:wght@400;450;500;600&display=swap" rel="stylesheet" />
@@ -38,7 +38,6 @@
   html { -webkit-text-size-adjust: 100%; }
 
   body {
-    /* 极淡的径向渐变，让磨砂返回按钮有可见的模糊层次 */
     background:
       radial-gradient(1100px 520px at 12% -8%, #fbfaf5 0%, rgba(251, 250, 245, 0) 62%),
       radial-gradient(900px 480px at 92% 4%, #f8f5ee 0%, rgba(248, 245, 238, 0) 58%),
@@ -56,10 +55,7 @@
     padding: 76px 20px 80px;
   }
 
-  .page {
-    width: 100%;
-    max-width: 600px;
-  }
+  .page { width: 100%; max-width: 600px; }
 
   /* ===== 左上角磨砂返回按钮 ===== */
   .back-btn {
@@ -108,7 +104,6 @@
   }
 
   .back-btn:hover svg { transform: translateX(-2px); }
-
   .back-btn:active { transform: scale(0.97); }
 
   .back-btn:focus-visible {
@@ -153,11 +148,10 @@
   }
 
   .offline-note a:hover { color: #95452b; }
-
   .offline-note[hidden] { display: none; }
 
   /* Header */
-  .header { margin-bottom: 40px; text-align: left; }
+  .header { margin-bottom: 32px; text-align: left; }
 
   .header-eyebrow {
     font-size: 12px;
@@ -218,6 +212,272 @@
     margin-bottom: 24px;
     padding-left: 30px;
   }
+
+  /* ===== 申请规则折叠面板 ===== */
+  .rules-card {
+    padding: 0;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .rules-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 20px 24px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--font-serif);
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    transition: background 0.18s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .rules-toggle:hover { background: rgba(240, 238, 230, 0.55); }
+
+  .rules-toggle:focus-visible {
+    outline: none;
+    background: rgba(240, 238, 230, 0.8);
+    box-shadow: inset 0 0 0 2px rgba(201, 100, 66, 0.35);
+  }
+
+  .rules-toggle-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .rules-toggle-left svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--primary);
+    flex-shrink: 0;
+  }
+
+  .rules-toggle-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 0;
+  }
+
+  .rules-hint { transition: color 0.18s ease; }
+
+  .rules-arrow {
+    width: 16px;
+    height: 16px;
+    stroke: var(--text-tertiary);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.18s ease;
+  }
+
+  .rules-card.is-open .rules-arrow { transform: rotate(180deg); }
+  .rules-card.is-open .rules-toggle-right { color: var(--primary); }
+  .rules-card.is-open .rules-arrow { stroke: var(--primary); }
+
+  .rules-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition:
+      grid-template-rows 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 0.35s ease;
+  }
+
+  .rules-card.is-open .rules-body {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+
+  .rules-inner { overflow: hidden; }
+
+  .rules-content {
+    padding: 0 24px 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .rules-intro {
+    margin: 16px 0 18px;
+    font-size: 13.5px;
+    color: var(--text-secondary);
+  }
+
+  .rules-list {
+    list-style: none;
+    counter-reset: rule;
+    padding: 0;
+    margin: 0;
+  }
+
+  .rules-list > li {
+    counter-increment: rule;
+    position: relative;
+    padding-left: 34px;
+    margin-bottom: 18px;
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--text-secondary);
+  }
+
+  .rules-list > li:last-child { margin-bottom: 0; }
+
+  .rules-list > li::before {
+    content: counter(rule);
+    position: absolute;
+    left: 0;
+    top: 1px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-family: var(--font-sans);
+    font-size: 11.5px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ===== 可点击复制的本站信息卡 ===== */
+  .site-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin-top: 12px;
+    padding: 12px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--font-sans);
+    color: inherit;
+    transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .site-card:hover {
+    border-color: rgba(201, 100, 66, 0.45);
+    background: #fbfaf6;
+  }
+
+  .site-card:active { transform: scale(0.998); }
+
+  .site-card:focus-visible {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(201, 100, 66, 0.15);
+  }
+
+  .site-card.is-copied {
+    border-color: rgba(61, 107, 79, 0.45);
+    background: var(--success-bg);
+  }
+
+  .site-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+  }
+
+  .site-meta {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .site-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.35;
+  }
+
+  .site-desc {
+    font-size: 12.5px;
+    color: var(--text-tertiary);
+    line-height: 1.45;
+  }
+
+  .site-url {
+    display: inline-block;
+    margin-top: 2px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--primary);
+    word-break: break-all;
+    line-height: 1.4;
+  }
+
+  .site-card.is-copied .site-url { color: var(--success); }
+
+  .site-copy {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 2px;
+  }
+
+  .site-copy svg {
+    position: absolute;
+    inset: 0;
+    width: 18px;
+    height: 18px;
+    stroke: var(--text-tertiary);
+    transition: opacity 0.15s ease, stroke 0.15s ease;
+  }
+
+  .site-copy .check-icon { opacity: 0; stroke: var(--success); }
+
+  .site-card:hover .site-copy .copy-icon { stroke: var(--primary); }
+
+  .site-card.is-copied .site-copy .copy-icon { opacity: 0; }
+  .site-card.is-copied .site-copy .check-icon { opacity: 1; }
+
+  .site-copy-hint {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.2s ease;
+  }
+
+  .site-copy-hint .hint-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+  }
+
+  .site-copy-hint.is-copied { color: var(--success); }
+  .site-copy-hint.is-copied .hint-dot { background: var(--success); }
+  .site-copy-hint.is-error { color: var(--error); }
+  .site-copy-hint.is-error .hint-dot { background: var(--error); }
 
   /* Form */
   .field { margin-bottom: 18px; }
@@ -436,6 +696,9 @@
   @media (max-width: 480px) {
     body { padding: 66px 14px 56px; }
     .card { padding: 22px 18px; }
+    .rules-card { padding: 0; }
+    .rules-toggle { padding: 18px; }
+    .rules-content { padding: 0 18px 20px; }
     .card-desc { padding-left: 0; }
     .query-row { flex-direction: column; }
     .query-row .btn { width: 100%; }
@@ -477,10 +740,70 @@
   </div>
 
   <header class="header">
-    <div class="header-eyebrow">Web Mutual Aid</div>
-    <h1>网页互助申请</h1>
-    <p>提交互助请求，或查询已有申请的审批状态。人机验证通过后方可提交。</p>
+    <div class="header-eyebrow">Friend Links</div>
+    <h1>友链申请</h1>
+    <p>提交友链申请，或查询已有申请的处理进度。提交前请先阅读申请规则。</p>
   </header>
+
+  <!-- 申请规则（可折叠） -->
+  <section class="card rules-card" id="rulesCard">
+    <button type="button" class="rules-toggle" id="rulesToggle" aria-expanded="false" aria-controls="rulesBody">
+      <span class="rules-toggle-left">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+        </svg>
+        申请规则
+      </span>
+      <span class="rules-toggle-right">
+        <span class="rules-hint" id="rulesHint">点击展开</span>
+        <svg class="rules-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 9l6 6 6-6"/>
+        </svg>
+      </span>
+    </button>
+
+    <div class="rules-body" id="rulesBody">
+      <div class="rules-inner">
+        <div class="rules-content">
+          <p class="rules-intro">提交前请确认已满足以下条件：</p>
+          <ol class="rules-list">
+            <li>
+              主动添加者需要先主动添加本站（点击下方卡片一键复制友链代码）：
+              <button type="button" class="site-card" id="siteCard" aria-label="复制本站友链代码">
+                <img
+                  class="site-avatar"
+                  src="https://chisato.org.cn/assets/avatar.png"
+                  alt="水水小站头像"
+                  loading="lazy"
+                />
+                <span class="site-meta">
+                  <span class="site-name">水水小站</span>
+                  <span class="site-desc">水水的小站</span>
+                  <span class="site-url">https://chisato.org.cn</span>
+                </span>
+                <span class="site-copy" aria-hidden="true">
+                  <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="12" height="12" rx="2"/>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                  </svg>
+                  <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 6L9 17l-5-5"/>
+                  </svg>
+                </span>
+              </button>
+              <div class="site-copy-hint" id="siteCopyHint">
+                <span class="hint-dot"></span>
+                <span id="siteCopyHintText">点击卡片复制 HTML 友链代码</span>
+              </div>
+            </li>
+            <li>不允许黑灰产产业添加（赌博、色情、诈骗等非法业务）。</li>
+            <li>本站不要求强制 HTTPS，但请确保你的站点访问安全、稳定可用。</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- 提交申请 -->
   <section class="card">
@@ -488,24 +811,24 @@
       <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M12 5v14M5 12h14"/>
       </svg>
-      提交申请
+      提交友链申请
     </div>
     <div class="card-desc">所有字段均为必填，动态鉴权有效期为 120 秒。</div>
 
     <form id="applyForm" novalidate>
       <div class="field">
-        <label for="pageUrl">网页链接</label>
+        <label for="pageUrl">你的网页链接</label>
         <input type="url" id="pageUrl" placeholder="https://example.com" required autocomplete="url" />
       </div>
 
       <div class="field">
-        <label for="imageUrl">图片直链</label>
-        <input type="url" id="imageUrl" placeholder="https://example.com/banner.png" required autocomplete="url" />
+        <label for="imageUrl">头像 / 图片直链</label>
+        <input type="url" id="imageUrl" placeholder="https://example.com/avatar.png" required autocomplete="url" />
       </div>
 
       <div class="field">
-        <label for="owner">所有者名称 / 联系方式</label>
-        <input type="text" id="owner" placeholder="例如：Alice (@alice_dev)" required autocomplete="name" />
+        <label for="owner">站点名称 / 联系方式</label>
+        <input type="text" id="owner" placeholder="例如：水水小站（@waterchisato）" required autocomplete="name" />
       </div>
 
       <!-- Turnstile 人机验证 -->
@@ -521,7 +844,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
         </svg>
-        获取令牌并提交
+        提交友链申请
       </button>
     </form>
 
@@ -547,7 +870,7 @@
 
   <footer class="footer">
     人机验证由 Cloudflare Turnstile 提供 · 动态鉴权基于 SHA-256<br />
-    生产环境请将 <code>SITE_KEY</code> 替换为你的 Turnstile Sitekey，并将 <code>API_BASE</code> 替换为实际 Worker 域名。
+    生产环境请将 <code>API_BASE</code> 替换为实际 Worker 域名。
   </footer>
 
 </div>
@@ -560,19 +883,21 @@
   'use strict';
 
   /* ========== 配置 ========== */
-  // ⚠️ 替换为你的 Cloudflare Worker 域名，末尾不带斜杠
   const API_BASE = 'https://hellohz.3986985602.workers.dev';
-
-  // ⚠️ 替换为你自己的 Turnstile Sitekey
-  // 当前为 Cloudflare 官方测试 Sitekey（始终通过，返回 dummy token）
   const TURNSTILE_SITE_KEY = '0x4AAAAAAFsdrFqjSJgwNnjb';
-
-  // 断网兜底联系方式
   const FALLBACK_EMAIL = 'aaa@waterchisato.top';
+
+  // 点击本站信息卡时复制到剪贴板的内容（HTML 友链代码）
+  const FRIEND_LINK_HTML =
+    '<a href="https://chisato.org.cn" target="_blank" rel="noopener" title="水水小站">\n' +
+    '  <img src="https://chisato.org.cn/assets/avatar.png" alt="水水小站" width="48" height="48" />\n' +
+    '  水水小站 · 水水的小站\n' +
+    '</a>';
 
   /* ========== 状态 ========== */
   let turnstileToken = '';
   let widgetId = null;
+  let copyTimer = null;
 
   const $ = function (id) { return document.getElementById(id); };
 
@@ -596,7 +921,7 @@
 
   function isNetworkError(err) {
     if (!err) return false;
-    if (err instanceof TypeError) return true;                 // fetch 网络失败
+    if (err instanceof TypeError) return true;
     return /failed to fetch|networkerror|network error|load failed|err_internet|offline/i
       .test(err.message || '');
   }
@@ -610,6 +935,85 @@
     el.innerHTML = html;
     el.className = 'result is-visible ' + (type ? 'is-' + type : 'is-info');
   }
+
+  /* ========== 剪贴板复制（含降级） ========== */
+  async function copyText(text) {
+    // 优先 Clipboard API
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (_) { /* 继续降级 */ }
+    }
+    // 降级：临时 textarea + execCommand
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.top = '-9999px';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, ta.value.length);
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /* ========== 申请规则折叠 ========== */
+  (function initRules() {
+    const card = $('rulesCard');
+    const toggle = $('rulesToggle');
+    const hint = $('rulesHint');
+    if (!card || !toggle) return;
+
+    toggle.addEventListener('click', function () {
+      const open = card.classList.toggle('is-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (hint) hint.textContent = open ? '收起' : '点击展开';
+    });
+  })();
+
+  /* ========== 点击本站信息卡复制友链代码 ========== */
+  (function initSiteCopy() {
+    const card = $('siteCard');
+    const hint = $('siteCopyHint');
+    const hintText = $('siteCopyHintText');
+    if (!card) return;
+
+    const DEFAULT_HINT = '点击卡片复制 HTML 友链代码';
+
+    function setHint(state, text) {
+      if (!hint) return;
+      hint.classList.remove('is-copied', 'is-error');
+      if (state === 'copied') hint.classList.add('is-copied');
+      if (state === 'error') hint.classList.add('is-error');
+      if (hintText) hintText.textContent = text;
+    }
+
+    card.addEventListener('click', async function () {
+      const ok = await copyText(FRIEND_LINK_HTML);
+
+      clearTimeout(copyTimer);
+
+      if (ok) {
+        card.classList.add('is-copied');
+        setHint('copied', '已复制，粘贴到你的友链页面即可');
+      } else {
+        card.classList.remove('is-copied');
+        setHint('error', '复制失败，请手动选择卡片内的网址');
+      }
+
+      copyTimer = setTimeout(function () {
+        card.classList.remove('is-copied');
+        setHint('', DEFAULT_HINT);
+      }, 2200);
+    });
+  })();
 
   /* ========== 断网提示条 ========== */
   function updateOfflineNote() {
@@ -687,14 +1091,12 @@
       return;
     }
 
-    // 能走到这里说明 Turnstile 已通过，captchaVerified 严格传 "y"
     const captchaVerified = 'y';
 
     submitBtn.disabled = true;
     showResult(resultBox, '正在获取动态令牌…', 'info');
 
     try {
-      /* Step 1: 获取动态 Token */
       const tokenRes = await fetch(API_BASE + '/api/token', { method: 'GET' });
       const tokenData = await tokenRes.json().catch(function () { return {}; });
 
@@ -709,11 +1111,9 @@
         throw new Error('动态令牌响应格式异常');
       }
 
-      /* Step 2: 计算 X-Auth-Proof（严格 ts:sig:pageUrl:owner:captchaVerified，不含 imageUrl） */
       showResult(resultBox, '正在计算动态鉴权签名…', 'info');
       const proof = await sha256Hex(ts + ':' + sig + ':' + pageUrl + ':' + owner + ':' + captchaVerified);
 
-      /* Step 3: 携带鉴权 Header 提交 */
       showResult(resultBox, '正在提交申请…', 'info');
 
       const applyRes = await fetch(API_BASE + '/api/apply', {
@@ -738,7 +1138,6 @@
         throw new Error(data.error || '提交失败（HTTP ' + applyRes.status + '）');
       }
 
-      /* 成功 */
       const id = data.id || '（未返回 ID）';
       showResult(
         resultBox,
@@ -749,7 +1148,6 @@
 
       $('queryId').value = id;
 
-      // Turnstile token 一次性，重置以备下次提交
       turnstileToken = '';
       $('turnstileStatus').classList.remove('is-verified');
       $('turnstileStatusText').textContent = '人机验证已重置';
