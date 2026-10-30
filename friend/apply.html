@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>网页互助 · 申请与查询</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Inter:wght@400;450;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #f5f4ed;
+    --surface: #faf9f5;
+    --surface-2: #f0eee6;
+    --text: #141413;
+    --text-secondary: #5e5d59;
+    --text-tertiary: #87867f;
+    --border: #e8e6dc;
+    --border-strong: #d4d1c5;
+    --primary: #c96442;
+    --primary-hover: #b55738;
+    --primary-soft: #f3e6df;
+    --success: #3d6b4f;
+    --success-bg: #eaf1ec;
+    --error: #b53333;
+    --error-bg: #f7eaea;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --shadow-ring: 0 0 0 1px rgba(20, 20, 19, 0.06), 0 2px 8px rgba(20, 20, 19, 0.04);
+    --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    /* 极淡的径向渐变，让磨砂返回按钮有可见的模糊层次 */
+    background:
+      radial-gradient(1100px 520px at 12% -8%, #fbfaf5 0%, rgba(251, 250, 245, 0) 62%),
+      radial-gradient(900px 480px at 92% 4%, #f8f5ee 0%, rgba(248, 245, 238, 0) 58%),
+      var(--bg);
+    background-attachment: fixed;
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 76px 20px 80px;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 600px;
+  }
+
+  /* ===== 左上角磨砂返回按钮 ===== */
+  .back-btn {
+    position: fixed;
+    top: 18px;
+    left: 18px;
+    z-index: 50;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px 8px 10px;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: 999px;
+    background: rgba(250, 249, 245, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.62);
+    -webkit-backdrop-filter: blur(16px) saturate(1.8);
+    backdrop-filter: blur(16px) saturate(1.8);
+    box-shadow:
+      0 1px 2px rgba(20, 20, 19, 0.05),
+      0 8px 24px rgba(20, 20, 19, 0.07),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    transition: background 0.18s ease, color 0.18s ease, transform 0.12s ease, box-shadow 0.18s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .back-btn svg {
+    width: 15px;
+    height: 15px;
+    stroke: currentColor;
+    flex-shrink: 0;
+    transition: transform 0.18s ease;
+  }
+
+  .back-btn:hover {
+    background: rgba(250, 249, 245, 0.82);
+    color: var(--text);
+    box-shadow:
+      0 1px 2px rgba(20, 20, 19, 0.06),
+      0 10px 28px rgba(20, 20, 19, 0.09),
+      inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  }
+
+  .back-btn:hover svg { transform: translateX(-2px); }
+
+  .back-btn:active { transform: scale(0.97); }
+
+  .back-btn:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 3px rgba(201, 100, 66, 0.22),
+      0 8px 24px rgba(20, 20, 19, 0.08);
+  }
+
+  /* ===== 断网提示条 ===== */
+  .offline-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 22px;
+    padding: 12px 15px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: #8a5a3c;
+    background: rgba(243, 230, 223, 0.72);
+    border: 1px solid rgba(201, 100, 66, 0.22);
+    border-radius: var(--radius-md);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+
+  .offline-note svg {
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    stroke: #b55738;
+    flex-shrink: 0;
+  }
+
+  .offline-note a {
+    color: #b55738;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+    word-break: break-all;
+  }
+
+  .offline-note a:hover { color: #95452b; }
+
+  .offline-note[hidden] { display: none; }
+
+  /* Header */
+  .header { margin-bottom: 40px; text-align: left; }
+
+  .header-eyebrow {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+  }
+
+  .header h1 {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    font-size: clamp(28px, 5vw, 36px);
+    line-height: 1.18;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .header p {
+    color: var(--text-secondary);
+    font-size: 14.5px;
+    max-width: 48ch;
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    box-shadow: var(--shadow-ring);
+    margin-bottom: 24px;
+  }
+
+  .card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-serif);
+    font-weight: 500;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+    margin-bottom: 4px;
+  }
+
+  .card-title svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--primary);
+    flex-shrink: 0;
+  }
+
+  .card-desc {
+    color: var(--text-tertiary);
+    font-size: 13.5px;
+    margin-bottom: 24px;
+    padding-left: 30px;
+  }
+
+  /* Form */
+  .field { margin-bottom: 18px; }
+
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    letter-spacing: 0.01em;
+  }
+
+  .field input {
+    width: 100%;
+    padding: 11px 13px;
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .field input::placeholder { color: var(--text-tertiary); font-weight: 400; }
+
+  .field input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(201, 100, 66, 0.12);
+  }
+
+  /* Turnstile */
+  .turnstile-wrap {
+    margin: 22px 0 8px;
+    min-height: 70px;
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .turnstile-status {
+    font-size: 12.5px;
+    color: var(--text-tertiary);
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .turnstile-status .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    transition: background 0.2s;
+  }
+
+  .turnstile-status.is-verified .dot { background: var(--success); }
+  .turnstile-status.is-verified { color: var(--success); }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 20px;
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn:active { transform: scale(0.995); }
+
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+
+  .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+  .btn-secondary {
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+  }
+
+  .btn-secondary:hover:not(:disabled) { background: var(--border); }
+
+  .btn svg { width: 16px; height: 16px; stroke: currentColor; }
+
+  /* Result */
+  .result {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    font-size: 13.5px;
+    line-height: 1.55;
+    display: none;
+    word-break: break-word;
+  }
+
+  .result.is-visible { display: block; }
+
+  .result.is-success {
+    background: var(--success-bg);
+    color: var(--success);
+    border: 1px solid rgba(61, 107, 79, 0.18);
+  }
+
+  .result.is-error {
+    background: var(--error-bg);
+    color: var(--error);
+    border: 1px solid rgba(181, 51, 51, 0.18);
+  }
+
+  .result.is-info {
+    background: var(--surface-2);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+
+  .result.is-offline {
+    background: rgba(243, 230, 223, 0.8);
+    color: #8a5a3c;
+    border: 1px solid rgba(201, 100, 66, 0.22);
+  }
+
+  .result strong { font-weight: 600; }
+
+  .result a {
+    color: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    word-break: break-all;
+  }
+
+  .result code {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    background: rgba(20, 20, 19, 0.05);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  /* Query */
+  .query-row { display: flex; gap: 10px; }
+
+  .query-row input {
+    flex: 1;
+    min-width: 0;
+    padding: 11px 13px;
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .query-row input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(201, 100, 66, 0.12);
+  }
+
+  .query-row .btn { width: auto; flex-shrink: 0; padding: 11px 22px; }
+
+  /* Status badge */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+  }
+
+  .status-badge.pending { background: #f5efe4; color: #8a6d3b; }
+  .status-badge.y { background: var(--success-bg); color: var(--success); }
+  .status-badge.n { background: var(--error-bg); color: var(--error); }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 32px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    line-height: 1.7;
+  }
+
+  .footer code {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    background: var(--surface-2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  @media (max-width: 640px) {
+    body { padding: 70px 16px 60px; }
+    .back-btn { top: 14px; left: 14px; padding: 7px 13px 7px 9px; }
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 66px 14px 56px; }
+    .card { padding: 22px 18px; }
+    .card-desc { padding-left: 0; }
+    .query-row { flex-direction: column; }
+    .query-row .btn { width: 100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+    .back-btn:hover svg { transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 左上角磨砂返回按钮 -->
+<a class="back-btn" href="https://chisato.org.cn/friend/index" aria-label="返回友链页面">
+  <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M19 12H5M12 19l-7-7 7-7"/>
+  </svg>
+  返回
+</a>
+
+<div class="page">
+
+  <!-- 断网提示（在线时自动隐藏） -->
+  <div class="offline-note" id="offlineNote" role="status" aria-live="polite" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M1 1l22 22"/>
+      <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/>
+      <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/>
+      <path d="M10.71 5.05A16 16 0 0 1 22.58 9"/>
+      <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
+      <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+      <path d="M12 20h.01"/>
+    </svg>
+    <span>
+      没有访问网络仍想加入？联系邮箱
+      <a href="mailto:aaa@waterchisato.top">aaa@waterchisato.top</a>
+    </span>
+  </div>
+
+  <header class="header">
+    <div class="header-eyebrow">Web Mutual Aid</div>
+    <h1>网页互助申请</h1>
+    <p>提交互助请求，或查询已有申请的审批状态。人机验证通过后方可提交。</p>
+  </header>
+
+  <!-- 提交申请 -->
+  <section class="card">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      提交申请
+    </div>
+    <div class="card-desc">所有字段均为必填，动态鉴权有效期为 120 秒。</div>
+
+    <form id="applyForm" novalidate>
+      <div class="field">
+        <label for="pageUrl">网页链接</label>
+        <input type="url" id="pageUrl" placeholder="https://example.com" required autocomplete="url" />
+      </div>
+
+      <div class="field">
+        <label for="imageUrl">图片直链</label>
+        <input type="url" id="imageUrl" placeholder="https://example.com/banner.png" required autocomplete="url" />
+      </div>
+
+      <div class="field">
+        <label for="owner">所有者名称 / 联系方式</label>
+        <input type="text" id="owner" placeholder="例如：Alice (@alice_dev)" required autocomplete="name" />
+      </div>
+
+      <!-- Turnstile 人机验证 -->
+      <div class="turnstile-wrap">
+        <div id="turnstile-container"></div>
+      </div>
+      <div class="turnstile-status" id="turnstileStatus">
+        <span class="dot"></span>
+        <span id="turnstileStatusText">等待人机验证…</span>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="submitBtn" disabled style="margin-top: 20px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+        </svg>
+        获取令牌并提交
+      </button>
+    </form>
+
+    <div id="applyResult" class="result" role="status" aria-live="polite"></div>
+  </section>
+
+  <!-- 查询状态 -->
+  <section class="card">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+      </svg>
+      查询申请状态
+    </div>
+    <div class="card-desc">输入提交成功后获得的申请 ID。</div>
+
+    <div class="query-row">
+      <input type="text" id="queryId" placeholder="REQ-XXXXXXXX" spellcheck="false" autocomplete="off" />
+      <button type="button" class="btn btn-secondary" id="queryBtn">查询</button>
+    </div>
+    <div id="queryResult" class="result" role="status" aria-live="polite"></div>
+  </section>
+
+  <footer class="footer">
+    人机验证由 Cloudflare Turnstile 提供 · 动态鉴权基于 SHA-256<br />
+    生产环境请将 <code>SITE_KEY</code> 替换为你的 Turnstile Sitekey，并将 <code>API_BASE</code> 替换为实际 Worker 域名。
+  </footer>
+
+</div>
+
+<!-- Cloudflare Turnstile：显式渲染 -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad&render=explicit" async defer></script>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ========== 配置 ========== */
+  // ⚠️ 替换为你的 Cloudflare Worker 域名，末尾不带斜杠
+  const API_BASE = 'https://hellohz.3986985602.workers.dev';
+
+  // ⚠️ 替换为你自己的 Turnstile Sitekey
+  // 当前为 Cloudflare 官方测试 Sitekey（始终通过，返回 dummy token）
+  const TURNSTILE_SITE_KEY = '0x4AAAAAAFsdrFqjSJgwNnjb';
+
+  // 断网兜底联系方式
+  const FALLBACK_EMAIL = 'aaa@waterchisato.top';
+
+  /* ========== 状态 ========== */
+  let turnstileToken = '';
+  let widgetId = null;
+
+  const $ = function (id) { return document.getElementById(id); };
+
+  /* ========== SHA-256 Hex ========== */
+  async function sha256Hex(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    return Array.from(new Uint8Array(hashBuffer))
+      .map(function (b) { return b.toString(16).padStart(2, '0'); })
+      .join('');
+  }
+
+  /* ========== 工具 ========== */
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function isNetworkError(err) {
+    if (!err) return false;
+    if (err instanceof TypeError) return true;                 // fetch 网络失败
+    return /failed to fetch|networkerror|network error|load failed|err_internet|offline/i
+      .test(err.message || '');
+  }
+
+  function offlineMessageHtml() {
+    return '没有访问网络仍想加入？联系邮箱 ' +
+      '<a href="mailto:' + FALLBACK_EMAIL + '">' + FALLBACK_EMAIL + '</a>';
+  }
+
+  function showResult(el, html, type) {
+    el.innerHTML = html;
+    el.className = 'result is-visible ' + (type ? 'is-' + type : 'is-info');
+  }
+
+  /* ========== 断网提示条 ========== */
+  function updateOfflineNote() {
+    const note = $('offlineNote');
+    if (!note) return;
+    note.hidden = navigator.onLine !== false;
+  }
+
+  window.addEventListener('online', updateOfflineNote);
+  window.addEventListener('offline', updateOfflineNote);
+  updateOfflineNote();
+
+  /* ========== Turnstile 初始化 ========== */
+  window.onTurnstileLoad = function () {
+    if (typeof turnstile === 'undefined') {
+      $('turnstileStatusText').textContent = '人机验证加载失败，请检查网络后刷新';
+      return;
+    }
+
+    widgetId = turnstile.render('#turnstile-container', {
+      sitekey: TURNSTILE_SITE_KEY,
+      theme: 'light',
+      size: 'normal',
+      appearance: 'always',
+
+      callback: function (token) {
+        turnstileToken = token;
+        $('turnstileStatus').classList.add('is-verified');
+        $('turnstileStatusText').textContent = '人机验证已通过';
+        $('submitBtn').disabled = false;
+      },
+
+      'error-callback': function (code) {
+        turnstileToken = '';
+        $('turnstileStatus').classList.remove('is-verified');
+        $('turnstileStatusText').textContent = '人机验证出错（' + (code || '未知') + '），请刷新';
+        $('submitBtn').disabled = true;
+        updateOfflineNote();
+      },
+
+      'expired-callback': function () {
+        turnstileToken = '';
+        $('turnstileStatus').classList.remove('is-verified');
+        $('turnstileStatusText').textContent = '人机验证已过期，请重新验证';
+        $('submitBtn').disabled = true;
+      },
+
+      'timeout-callback': function () {
+        turnstileToken = '';
+        $('turnstileStatus').classList.remove('is-verified');
+        $('turnstileStatusText').textContent = '人机验证超时，请重试';
+        $('submitBtn').disabled = true;
+      }
+    });
+  };
+
+  /* ========== 提交申请 ========== */
+  $('applyForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const resultBox = $('applyResult');
+    const submitBtn = $('submitBtn');
+
+    const pageUrl = $('pageUrl').value.trim();
+    const imageUrl = $('imageUrl').value.trim();
+    const owner = $('owner').value.trim();
+
+    if (!pageUrl || !imageUrl || !owner) {
+      showResult(resultBox, '请填写所有必填字段。', 'error');
+      return;
+    }
+
+    if (!turnstileToken) {
+      showResult(resultBox, '请先完成人机验证。', 'error');
+      return;
+    }
+
+    // 能走到这里说明 Turnstile 已通过，captchaVerified 严格传 "y"
+    const captchaVerified = 'y';
+
+    submitBtn.disabled = true;
+    showResult(resultBox, '正在获取动态令牌…', 'info');
+
+    try {
+      /* Step 1: 获取动态 Token */
+      const tokenRes = await fetch(API_BASE + '/api/token', { method: 'GET' });
+      const tokenData = await tokenRes.json().catch(function () { return {}; });
+
+      if (!tokenRes.ok) {
+        throw new Error(tokenData.error || '获取动态令牌失败（HTTP ' + tokenRes.status + '）');
+      }
+
+      const ts = tokenData.ts;
+      const sig = tokenData.sig;
+
+      if (!ts || !sig) {
+        throw new Error('动态令牌响应格式异常');
+      }
+
+      /* Step 2: 计算 X-Auth-Proof（严格 ts:sig:pageUrl:owner:captchaVerified，不含 imageUrl） */
+      showResult(resultBox, '正在计算动态鉴权签名…', 'info');
+      const proof = await sha256Hex(ts + ':' + sig + ':' + pageUrl + ':' + owner + ':' + captchaVerified);
+
+      /* Step 3: 携带鉴权 Header 提交 */
+      showResult(resultBox, '正在提交申请…', 'info');
+
+      const applyRes = await fetch(API_BASE + '/api/apply', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Ts': ts,
+          'X-Auth-Sig': sig,
+          'X-Auth-Proof': proof
+        },
+        body: JSON.stringify({
+          pageUrl: pageUrl,
+          imageUrl: imageUrl,
+          owner: owner,
+          captchaVerified: captchaVerified
+        })
+      });
+
+      const data = await applyRes.json().catch(function () { return {}; });
+
+      if (!applyRes.ok) {
+        throw new Error(data.error || '提交失败（HTTP ' + applyRes.status + '）');
+      }
+
+      /* 成功 */
+      const id = data.id || '（未返回 ID）';
+      showResult(
+        resultBox,
+        '✅ 提交成功。申请 ID：<strong>' + escapeHtml(id) + '</strong><br />' +
+        '当前状态：pending（审核中），请保存好 ID 以便查询。',
+        'success'
+      );
+
+      $('queryId').value = id;
+
+      // Turnstile token 一次性，重置以备下次提交
+      turnstileToken = '';
+      $('turnstileStatus').classList.remove('is-verified');
+      $('turnstileStatusText').textContent = '人机验证已重置';
+      if (widgetId !== null) {
+        try { turnstile.reset(widgetId); } catch (_) {}
+      }
+
+    } catch (err) {
+      if (isNetworkError(err)) {
+        showResult(resultBox, offlineMessageHtml(), 'offline');
+        updateOfflineNote();
+      } else {
+        showResult(resultBox, '❌ ' + escapeHtml(err.message), 'error');
+      }
+    } finally {
+      if (turnstileToken) {
+        submitBtn.disabled = false;
+      }
+    }
+  });
+
+  /* ========== 查询状态 ========== */
+  $('queryBtn').addEventListener('click', async function () {
+    const id = $('queryId').value.trim();
+    const resultBox = $('queryResult');
+    const btn = this;
+
+    if (!id) {
+      showResult(resultBox, '请输入要查询的申请 ID。', 'error');
+      return;
+    }
+
+    showResult(resultBox, '查询中…', 'info');
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(API_BASE + '/api/query?id=' + encodeURIComponent(id), {
+        method: 'GET'
+      });
+
+      const data = await res.json().catch(function () { return {}; });
+
+      if (!res.ok) {
+        throw new Error(data.error || '查询失败（HTTP ' + res.status + '）');
+      }
+
+      const agreed = data.agreed || 'pending';
+      const statusText = data.statusText || mapStatus(agreed);
+      const badgeClass = (agreed === 'y' || agreed === 'n') ? agreed : 'pending';
+
+      resultBox.innerHTML =
+        '🆔 <strong>' + escapeHtml(data.id || id) + '</strong>' +
+        ' &nbsp;·&nbsp; ' +
+        '<span class="status-badge ' + badgeClass + '">' + escapeHtml(statusText) + '</span>' +
+        '<br /><span style="color: var(--text-tertiary); font-size: 12.5px;">KV 值：' +
+        escapeHtml(agreed) + '</span>';
+      resultBox.className = 'result is-visible is-info';
+
+    } catch (err) {
+      if (isNetworkError(err)) {
+        showResult(resultBox, offlineMessageHtml(), 'offline');
+        updateOfflineNote();
+      } else {
+        showResult(resultBox, '❌ ' + escapeHtml(err.message), 'error');
+      }
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  function mapStatus(agreed) {
+    if (agreed === 'y') return '已同意';
+    if (agreed === 'n') return '已拒绝';
+    return '审核中';
+  }
+
+})();
+</script>
+</body>
+</html>
