@@ -160,51 +160,6 @@
     max-width: 48ch;
   }
 
-  /* ===== 添加友链入口 ===== */
-  .quick-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    margin-bottom: 24px;
-    padding: 8px 15px 8px 12px;
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    color: var(--primary);
-    text-decoration: none;
-    background: var(--primary-soft);
-    border: 1px solid rgba(201, 100, 66, 0.2);
-    border-radius: 999px;
-    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.12s ease;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .quick-link svg {
-    width: 14px;
-    height: 14px;
-    stroke: currentColor;
-    flex-shrink: 0;
-  }
-
-  .quick-link .arrow {
-    transition: transform 0.2s ease;
-    opacity: 0.85;
-  }
-
-  .quick-link:hover {
-    background: #efdcd1;
-    border-color: rgba(201, 100, 66, 0.36);
-    color: var(--primary-hover);
-  }
-
-  .quick-link:hover .arrow { transform: translateX(2px); }
-  .quick-link:active { transform: scale(0.98); }
-
-  .quick-link:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(201, 100, 66, 0.22);
-  }
-
   /* Card */
   .card {
     background: var(--surface);
@@ -733,14 +688,13 @@
     body { transition: none; }
     body.is-leaving { opacity: 1; transform: none; }
     .back-btn:hover svg { transform: none; }
-    .quick-link:hover .arrow { transform: none; }
   }
 </style>
 </head>
 <body>
 
-<!-- 磨砂返回键：返回站点首页 -->
-<a class="back-btn" href="https://chisato.org.cn" data-nav aria-label="返回首页" title="返回首页">
+<!-- 磨砂返回键：返回友链页 -->
+<a class="back-btn" href="https://chisato.org.cn/friend/" data-nav aria-label="返回友链页" title="返回友链页">
   <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true">
     <path d="M15 6l-6 6 6 6"/>
   </svg>
@@ -753,17 +707,6 @@
     <h1>友链申请</h1>
     <p>提交友链申请，或查询已有申请的处理进度。提交前请先阅读申请规则。</p>
   </header>
-
-  <!-- 添加友链入口 -->
-  <a class="quick-link" href="https://chisato.org.cn/friend/apply" data-nav data-reveal>
-    <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true">
-      <path d="M12 5v14M5 12h14"/>
-    </svg>
-    添加友链
-    <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true">
-      <path d="M5 12h13M13 6l6 6-6 6"/>
-    </svg>
-  </a>
 
   <!-- 申请规则（可折叠） -->
   <section class="card rules-card" id="rulesCard" data-reveal>
